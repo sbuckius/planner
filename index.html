@@ -331,6 +331,7 @@ select option{background:var(--card)}
     <button class="tab-btn" data-tab="projects" onclick="setTab('projects')">📋 Projects</button>
     <button class="tab-btn" data-tab="people" onclick="setTab('people')">👥 People</button>
     <button class="tab-btn" data-tab="gantt" onclick="setTab('gantt')">📊 Gantt</button>
+    <button class="tab-btn" data-tab="activities" onclick="setTab('activities')">🎯 Activities</button>
     <button class="tab-btn" data-tab="trips" onclick="setTab('trips')">✈ Trips</button>
     <button class="tab-btn" data-tab="settings" onclick="setTab('settings')">⚙ Settings</button>
   </div>
@@ -518,6 +519,27 @@ select option{background:var(--card)}
       <div id="gantt-wrap"></div>
     </div>
 
+    <div id="panel-activities" class="tab-panel">
+      <div class="add-card">
+        <div class="add-title">Add Activity</div>
+        <div class="fg">
+          <div class="field"><label>Activity name</label><input id="a-name" placeholder="e.g. Morning hike, Team lunch…" onkeydown="if(event.key==='Enter')addActivity()"/></div>
+          <div class="field"><label>Date</label><input type="date" id="a-date"/></div>
+          <div class="field"><label>Start time</label><input type="time" id="a-time"/></div>
+          <div class="field"><label>End time</label><input type="time" id="a-endTime"/></div>
+          <div class="field"><label>Location</label><input id="a-location" placeholder="Where is this activity?"/></div>
+          <div class="field"><label>Category</label><select id="a-cat"></select></div>
+          <div class="field"><label>Assign to</label><select id="a-assignee"></select></div>
+          <div class="field"><label>Note</label><input id="a-note" placeholder="Details, equipment, reminders…"/></div>
+          <div class="field"><label>Cost</label><input type="number" id="a-cost" placeholder="0.00" step="0.01"/></div>
+          <div class="field"><label>Status</label><select id="a-status"><option value="planned">📋 Planned</option><option value="confirmed">✅ Confirmed</option><option value="inprogress">🚀 In Progress</option><option value="done">✔ Done</option><option value="cancelled">❌ Cancelled</option></select></div>
+        </div>
+        <button class="btn btn-p" onclick="addActivity()">+ Add Activity</button>
+      </div>
+      <div id="activities-filter-bar" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px"></div>
+      <div class="ilist" id="activities-list"></div>
+    </div>
+
     <div id="panel-trips" class="tab-panel">
       <div id="trips-content"></div>
     </div>
@@ -542,17 +564,47 @@ select option{background:var(--card)}
 
 <script>
 const SCHEMES={
-  midnight:{name:'Midnight',bg:'#1a0f2e',card:'#2d1b4e',surface:'#3d2560',border:'#5a3580',accent:'#9b59f7',aL:'rgba(155,89,247,0.18)',text:'#ede0ff',t2:'#c4a8f5',t3:'#8a6db5',hdr:'linear-gradient(135deg,#1a0f2e,#2d1b4e,#4a2880)',tBg:'rgba(155,89,247,0.2)',tBo:'rgba(155,89,247,0.4)'},
-  rose:    {name:'Rose',   bg:'#2b0a1a',card:'#3d0f25',surface:'#5a1a3a',border:'#7a2248',accent:'#ff2d95',aL:'rgba(255,45,149,0.18)',text:'#ffe4ec',t2:'#f8a1c4',t3:'#c47098',hdr:'linear-gradient(135deg,#2b0a1a,#5a0f2e,#8b1e3f)',tBg:'rgba(255,45,149,0.2)',tBo:'rgba(255,45,149,0.4)'},
-  ocean:   {name:'Ocean',  bg:'#05141f',card:'#0a2235',surface:'#0f3450',border:'#1a5278',accent:'#00c8ff',aL:'rgba(0,200,255,0.18)',text:'#dff4ff',t2:'#7ecff0',t3:'#4a8fad',hdr:'linear-gradient(135deg,#05141f,#0a2235,#0f3050)',tBg:'rgba(0,200,255,0.15)',tBo:'rgba(0,200,255,0.35)'},
-  forest:  {name:'Forest', bg:'#0a1a0e',card:'#142a18',surface:'#1e3d24',border:'#2e5c38',accent:'#4ade80',aL:'rgba(74,222,128,0.18)',text:'#e2faea',t2:'#86efac',t3:'#4d8f5e',hdr:'linear-gradient(135deg,#0a1a0e,#142a18,#1a3520)',tBg:'rgba(74,222,128,0.15)',tBo:'rgba(74,222,128,0.35)'},
-  ember:   {name:'Ember',  bg:'#1f0a00',card:'#2e1200',surface:'#451c00',border:'#6b2c00',accent:'#ff7b2c',aL:'rgba(255,123,44,0.18)',text:'#fff0e5',t2:'#ffc299',t3:'#b06030',hdr:'linear-gradient(135deg,#1f0a00,#3a1400,#5a2000)',tBg:'rgba(255,123,44,0.15)',tBo:'rgba(255,123,44,0.35)'},
+  // Midnight — deep slate-blue, softened to avoid eye strain
+  midnight:{name:'Midnight',
+    bg:'#16213e',card:'#1f2d50',surface:'#28395f',border:'#3a4f72',
+    accent:'#7c9ef5',aL:'rgba(124,158,245,0.15)',
+    text:'#dde6f8',t2:'#9db4e0',t3:'#6882a8',
+    hdr:'linear-gradient(135deg,#16213e,#1f2d50,#28395f)',
+    tBg:'rgba(124,158,245,0.12)',tBo:'rgba(124,158,245,0.35)'},
+  // Rose — muted dusty rose instead of hot pink
+  rose:    {name:'Rose',
+    bg:'#221420',card:'#312030',surface:'#3d2a3a',border:'#5a3a52',
+    accent:'#d07aaa',aL:'rgba(208,122,170,0.15)',
+    text:'#f0dcea',t2:'#c9a0ba',t3:'#907080',
+    hdr:'linear-gradient(135deg,#221420,#312030,#3d2a3a)',
+    tBg:'rgba(208,122,170,0.12)',tBo:'rgba(208,122,170,0.35)'},
+  // Ocean — navy with a calm teal accent instead of electric cyan
+  ocean:   {name:'Ocean',
+    bg:'#0d1f2d',card:'#152840',surface:'#1c3352',border:'#284d6e',
+    accent:'#4db8d4',aL:'rgba(77,184,212,0.15)',
+    text:'#d6edf5',t2:'#88bfd0',t3:'#517d8e',
+    hdr:'linear-gradient(135deg,#0d1f2d,#152840,#1c3352)',
+    tBg:'rgba(77,184,212,0.12)',tBo:'rgba(77,184,212,0.35)'},
+  // Forest — rich dark green with a soft sage accent
+  forest:  {name:'Forest',
+    bg:'#0f1c14',card:'#172618',surface:'#1f3222',border:'#2d4a32',
+    accent:'#5eb87a',aL:'rgba(94,184,122,0.15)',
+    text:'#d4edda',t2:'#8dbf9a',t3:'#547a5e',
+    hdr:'linear-gradient(135deg,#0f1c14,#172618,#1f3222)',
+    tBg:'rgba(94,184,122,0.12)',tBo:'rgba(94,184,122,0.35)'},
+  // Ember — warm dark brown with a calm amber instead of harsh orange
+  ember:   {name:'Ember',
+    bg:'#1c1208',card:'#271a0a',surface:'#33220e',border:'#4d3318',
+    accent:'#c8882a',aL:'rgba(200,136,42,0.15)',
+    text:'#f0e2cc',t2:'#c4a06a',t3:'#8a6a3a',
+    hdr:'linear-gradient(135deg,#1c1208,#271a0a,#33220e)',
+    tBg:'rgba(200,136,42,0.12)',tBo:'rgba(200,136,42,0.35)'},
 };
-const PC=['#9b59f7','#ff2d95','#00c8ff','#4ade80','#ff7b2c','#f7c948','#f77b9b','#68d8d6','#c7f464','#b895f5'];
+const PC=['#7c9ef5','#d07aaa','#4db8d4','#5eb87a','#c8882a','#c4a84a','#a07be0','#4abcb0','#9ab850','#e07878'];
 const SL={planning:'🗓 Planning',active:'🚀 Active',review:'👁 Review',done:'✅ Done',paused:'⏸ Paused'};
 const SC={planning:'var(--t3)',active:'var(--accent)',review:'#f7c948',done:'#4ade80',paused:'#ff7b2c'};
 
-let G={schemeKey:'midnight',people:['Alice','Bob','Carol'],tasks:[],purchases:[],reminders:[],locations:[],projects:[],events:[],trips:[],categories:['Work','Personal','Travel','Health','Finance']};
+let G={schemeKey:'midnight',people:['Alice','Bob','Carol'],tasks:[],purchases:[],reminders:[],locations:[],projects:[],events:[],trips:[],activities:[],categories:['Work','Personal','Travel','Health','Finance']};
 let FP='all',FC='all',CT='tasks',CY=new Date().getFullYear(),CM=new Date().getMonth(),SelDay=null,AttSel=[],modalFn=null,CAL_VIEW='month',CurDay=new Date().getDate();
 
 function save(){localStorage.setItem('gp_v1',JSON.stringify(G));}
@@ -566,7 +618,7 @@ function uid(){return Date.now()+Math.random().toString(36).slice(2);}
 function gv(id){const el=document.getElementById(id);return el?el.value:'';}
 function fmtTime(t){if(!t)return'';const[h,m]=t.split(':');const hr=parseInt(h);const ampm=hr>=12?'pm':'am';const h12=hr%12||12;return m==='00'?h12+ampm:h12+':'+m+ampm;}
 function copyItem(type,id){
-  const map={task:G.tasks,purchase:G.purchases,reminder:G.reminders,event:G.events,project:G.projects};
+  const map={task:G.tasks,purchase:G.purchases,reminder:G.reminders,event:G.events,project:G.projects,activity:G.activities||[]};
   const arr=map[type];if(!arr)return;
   const src=arr.find(x=>x.id===id);if(!src)return;
   const copy={...src,id:uid(),created:td()};
@@ -644,12 +696,12 @@ function setTab(tab){
   renderFilterBar();renderCurTab();
 }
 function renderCurTab(){
-  const m={tasks:renderTasks,purchases:renderPurchases,reminders:renderReminders,locations:renderLocations,events:renderCalendar,projects:renderProjects,people:renderPeople,gantt:renderGantt,trips:renderTrips,settings:renderSettings};
+  const m={tasks:renderTasks,purchases:renderPurchases,reminders:renderReminders,locations:renderLocations,events:renderCalendar,projects:renderProjects,people:renderPeople,gantt:renderGantt,trips:renderTrips,activities:renderActivities,settings:renderSettings};
   (m[CT]||function(){})();renderHdr();
 }
 function renderSelects(){
   const cats=G.categories.map(c=>`<option value="${esc(c)}">${esc(c)}</option>`).join('');
-  ['t-cat','p-cat','r-cat','ev-cat','proj-cat'].forEach(id=>{const e=document.getElementById(id);if(e){const v=e.value;e.innerHTML=cats;if(G.categories.includes(v))e.value=v;}});
+  ['t-cat','p-cat','r-cat','ev-cat','proj-cat','a-cat'].forEach(id=>{const e=document.getElementById(id);if(e){const v=e.value;e.innerHTML=cats;if(G.categories.includes(v))e.value=v;}});
   const peop=(prefix,def)=>prefix+G.people.map((p,i)=>`<option value="${i}">${esc(p)}</option>`).join('');
   const assign={
     't-assignee':peop('<option value="">Anyone</option>',''),
@@ -657,6 +709,7 @@ function renderSelects(){
     'r-assignee':peop('<option value="">Everyone</option>',''),
     'l-assignee':peop('<option value="">Group</option>',''),
     'proj-owner':peop('<option value="">No owner</option>',''),
+    'a-assignee':peop('<option value="">Anyone</option>',''),
   };
   Object.entries(assign).forEach(([id,html])=>{const e=document.getElementById(id);if(e){const v=e.value;e.innerHTML=html;e.value=v;}});
 }
@@ -840,6 +893,18 @@ function getProjectLocEntries(){
   });
   return Object.values(locMap);
 }
+function getActivityLocEntries(){
+  const locMap={};
+  G.activities.forEach(a=>{
+    const loc=(a.location||'').trim();
+    if(!loc) return;
+    if(FP!=='all'&&String(a.assignee)!==String(FP)) return;
+    if(!locMap[loc]) locMap[loc]={loc,items:[],assignees:new Set()};
+    locMap[loc].items.push(a);
+    if(a.assignee!==''&&a.assignee!=null) locMap[loc].assignees.add(parseInt(a.assignee));
+  });
+  return Object.values(locMap);
+}
 function renderLocations(){
   const srch=(document.getElementById('loc-search').value||'').toLowerCase();
   const list=G.locations.filter(t=>{if(FP!=='all'&&String(t.assignee)!==String(FP))return false;if(srch&&!t.name.toLowerCase().includes(srch)&&!(t.address||'').toLowerCase().includes(srch))return false;return true;});
@@ -885,7 +950,13 @@ function renderLocations(){
     const itemList=e.items.map(x=>`<span style="font-size:11px;color:var(--text)">${esc(x.name)}</span>`).join('<span style="color:var(--text3)"> · </span>');
     return`<div class="lcard"><div style="display:flex;align-items:center;gap:6px;margin-bottom:6px"><span style="font-size:20px">📋</span><span class="tag" style="font-size:10px">Project location</span></div><div style="font-size:15px;font-weight:500;color:var(--text);margin-bottom:4px">${esc(e.loc)}</div><div style="font-size:12px;color:var(--text3);margin-bottom:6px;line-height:1.6">${itemList}</div><div class="flex-r" style="margin-top:4px;flex-wrap:wrap;gap:6px">${people.map(p=>`<span class="ptag" style="background:${p.color}22;color:${p.color}">${esc(p.name)}</span>`).join('')}</div></div>`;
   });
-  el.innerHTML=[...locCards,...purchCards,...taskCards,...eventCards,...reminderCards,...projectCards].join('');
+  const activityLocs=getActivityLocEntries().filter(e=>!srch||e.loc.toLowerCase().includes(srch));
+  const activityCards=activityLocs.map(e=>{
+    const people=[...e.assignees].map(i=>({name:G.people[i],color:PC[i%10]})).filter(x=>x.name);
+    const itemList=e.items.map(x=>`<span style="font-size:11px;color:var(--text)">${esc(x.name)}${x.date?' · '+fmtD(x.date):''}</span>`).join('<span style="color:var(--text3)"> · </span>');
+    return`<div class="lcard"><div style="display:flex;align-items:center;gap:6px;margin-bottom:6px"><span style="font-size:20px">🎯</span><span class="tag" style="font-size:10px">Activity</span></div><div style="font-size:15px;font-weight:500;color:var(--text);margin-bottom:4px">${esc(e.loc)}</div><div style="font-size:12px;color:var(--text3);margin-bottom:6px;line-height:1.6">${itemList}</div><div class="flex-r" style="margin-top:4px;flex-wrap:wrap;gap:6px">${people.map(p=>`<span class="ptag" style="background:${p.color}22;color:${p.color}">${esc(p.name)}</span>`).join('')}</div></div>`;
+  });
+  el.innerHTML=[...locCards,...purchCards,...taskCards,...eventCards,...reminderCards,...projectCards,...activityCards].join('');
 }
 async function geocodeOne(id){
   const t=G.locations.find(x=>x.id===id);if(!t||!t.address)return;
@@ -1109,7 +1180,14 @@ function getMapPinList(){
     const wc=e.items.find(x=>x.locLat&&x.locLng);
     return{_type:'project',name:e.loc,lat:wc.locLat,lng:wc.locLng,notes:e.items.map(x=>x.name).join(', '),assignees:[...e.assignees]};
   });
-  return [...locs,...purchPins,...taskPins,...eventPins,...reminderPins,...projectPins];
+  const activityPins=getActivityLocEntries().filter(e=>{
+    if(srch&&!e.loc.toLowerCase().includes(srch))return false;
+    return e.items.some(x=>x.locLat&&x.locLng);
+  }).map(e=>{
+    const wc=e.items.find(x=>x.locLat&&x.locLng);
+    return{_type:'activity',name:e.loc,lat:wc.locLat,lng:wc.locLng,notes:e.items.map(x=>x.name).join(', '),assignees:[...e.assignees]};
+  });
+  return [...locs,...purchPins,...taskPins,...eventPins,...reminderPins,...projectPins,...activityPins];
 }
 function drawPins(ctx,w,h,z){
   const layer=document.getElementById('map-pins-layer'); if(!layer) return;
@@ -1126,9 +1204,9 @@ function drawPins(ctx,w,h,z){
     if(p.x<-30||p.x>w+30||p.y<-40||p.y>h+10) return;
     const pin=document.createElement('div');
     pin.style.cssText=`position:absolute;left:${p.x}px;top:${p.y}px;transform:translate(-50%,-100%);cursor:pointer;pointer-events:auto`;
-    const typeColors={purchase:'#f7c948',task:'#4ade80',event:'#00c8ff',reminder:'#ff9f43',project:'#c084fc'};
+    const typeColors={purchase:'#f7c948',task:'#4ade80',event:'#00c8ff',reminder:'#ff9f43',project:'#c084fc',activity:'#fb923c'};
     const hex2=t._type?typeColors[t._type]||'#9b59f7':(per?PC[parseInt(t.assignee)%10]:'#9b59f7');
-    const label=t._type==='purchase'?'🛒':t._type==='task'?'☑':t._type==='event'?'📅':t._type==='reminder'?'🔔':t._type==='project'?'📋':esc(inits(t.name));
+    const label=t._type==='purchase'?'🛒':t._type==='task'?'☑':t._type==='event'?'📅':t._type==='reminder'?'🔔':t._type==='project'?'📋':t._type==='activity'?'🎯':esc(inits(t.name));
     pin.innerHTML=`<svg width="30" height="38" viewBox="0 0 30 38" xmlns="http://www.w3.org/2000/svg"><path d="M15 0C6.716 0 0 6.716 0 15c0 9.375 15 23 15 23S30 24.375 30 15C30 6.716 23.284 0 15 0z" fill="${hex2}" stroke="rgba(0,0,0,.3)" stroke-width="1"/><circle cx="15" cy="15" r="6.5" fill="white" opacity="0.9"/><text x="15" y="18.5" text-anchor="middle" font-size="8" font-weight="700" fill="${hex2}" font-family="sans-serif">${label}</text></svg>`;
     pin.title=t.name;
     pin.onclick=(e)=>{e.stopPropagation();showMapPopup(t,p.x,p.y,w,h,hex2,per);};
@@ -1167,6 +1245,11 @@ function showMapPopup(t,px,py,w,h,hex,per){
     const items=group?group.items:[];
     const rows=items.map(x=>`<div style="font-size:11px;color:var(--text);margin-bottom:2px">📋 ${esc(x.name)}</div>`).join('');
     pop.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px"><div><span style="font-size:11px;color:var(--text3)">📋 Project location</span><div class="lmap-popup-name">${esc(t.name)}</div></div><button onclick="closeMapPopup()" style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:14px;line-height:1;flex-shrink:0">✕</button></div><div style="margin-top:6px">${rows}</div>`;
+  } else if(t._type==='activity'){
+    const group=getActivityLocEntries().find(e=>e.loc===t.name);
+    const items=group?group.items:[];
+    const rows=items.map(x=>`<div style="font-size:11px;color:var(--text);margin-bottom:2px">🎯 ${esc(x.name)}${x.date?' · '+fmtD(x.date):''}${x.time?' · '+fmtTime(x.time):''}</div>`).join('');
+    pop.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px"><div><span style="font-size:11px;color:var(--text3)">🎯 Activity location</span><div class="lmap-popup-name">${esc(t.name)}</div></div><button onclick="closeMapPopup()" style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:14px;line-height:1;flex-shrink:0">✕</button></div><div style="margin-top:6px">${rows}</div>`;
   } else {
     pop.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px"><div class="lmap-popup-name">${esc(t.name)}</div><button onclick="closeMapPopup()" style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:14px;line-height:1;flex-shrink:0">✕</button></div>${t.type?`<div style="margin-bottom:5px"><span class="tag" style="font-size:10px">${esc(t.type)}</span></div>`:''}${t.address?`<div class="lmap-popup-addr">📌 ${esc(t.address)}</div>`:''}${t.notes?`<div class="lmap-popup-addr" style="font-style:italic">${esc(t.notes)}</div>`:''}${per?`<div style="margin-top:5px"><span class="ptag" style="background:${hex}22;color:${hex};font-size:11px">${esc(per)}</span></div>`:''}${t.link?`<div style="margin-top:6px"><a class="lmap-popup-link" href="${esc(t.link)}" target="_blank">🗺 Open map</a></div>`:''}`;
   }
@@ -1243,6 +1326,10 @@ function getUnmappedGroups(){
   // Projects
   getProjectLocEntries().filter(e=>!e.items.some(x=>x.locLat&&x.locLng)).forEach(e=>{
     groups.push({query:e.loc,label:'📋 '+e.loc,onFound:(lat,lng)=>e.items.forEach(x=>{x.locLat=lat;x.locLng=lng;})});
+  });
+  // Activities
+  getActivityLocEntries().filter(e=>!e.items.some(x=>x.locLat&&x.locLng)).forEach(e=>{
+    groups.push({query:e.loc,label:'🎯 '+e.loc,onFound:(lat,lng)=>e.items.forEach(x=>{x.locLat=lat;x.locLng=lng;})});
   });
   return groups;
 }
@@ -1321,6 +1408,7 @@ function getAllLocationStrings(){
   G.events.filter(e=>e.location).forEach(e=>locs.add(e.location));
   G.reminders.filter(r=>r.location).forEach(r=>locs.add(r.location));
   G.projects.filter(p=>p.location).forEach(p=>locs.add(p.location));
+  (G.activities||[]).filter(a=>a.location).forEach(a=>locs.add(a.location));
   return [...locs];
 }
 
@@ -1406,6 +1494,11 @@ function renderCalendar(){
     if(FP!=='all'&&String(p.owner)!==String(FP))return;
     addToDay(p,'project');
   });
+  (G.activities||[]).forEach(a=>{
+    if(!a.date)return;
+    if(FP!=='all'&&String(a.assignee)!==String(FP))return;
+    addToDay(a,'activity');
+  });
   // Sort each day's items by time
   Object.values(byDay).forEach(arr=>arr.sort((a,b)=>{
     const ta=a.time||a.startTime||'';const tb=b.time||b.startTime||'';
@@ -1423,6 +1516,7 @@ function renderCalendar(){
       if(x._type==='task')return`<div class="cal-ep" style="background:rgba(74,222,128,0.15);color:#4ade80">☑ ${esc(x.name)}${t}</div>`;
       if(x._type==='purchase')return`<div class="cal-ep" style="background:rgba(247,201,72,0.12);color:#f7c948">🛒 ${esc(x.name)}${t}</div>`;
       if(x._type==='project')return`<div class="cal-ep" style="background:rgba(192,132,252,0.15);color:#c084fc">📋 ${esc(x.name)}${t}</div>`;
+      if(x._type==='activity')return`<div class="cal-ep" style="background:rgba(251,146,60,0.15);color:#fb923c">🎯 ${esc(x.name)}${t}</div>`;
       return`<div class="cal-ep">📅 ${esc(x.title||x.name||'')}${t}</div>`;
     }).join('');
     const more=items.length>3?`<div class="cal-more">+${items.length-3} more</div>`:'';
@@ -1454,6 +1548,10 @@ function renderDayEvts(byDay){
       const own=x.owner!==''&&x.owner!=null?G.people[parseInt(x.owner)]:null,pc=own?PC[parseInt(x.owner)%10]:null;
       const scol=SC[x.status]||'var(--text3)';
       h+=`<div class="irow" style="margin-bottom:6px;border-color:rgba(192,132,252,0.3)"><div style="font-size:20px;flex-shrink:0">📋</div><div class="ibody"><div class="imeta"><span style="font-size:14px;font-weight:500;color:var(--text)">${esc(x.name)}</span><span style="font-size:11px;color:${scol}">${SL[x.status]||''}</span>${x.cat?`<span class="tag">${esc(x.cat)}</span>`:''}${own?`<span class="ptag" style="background:${pc}22;color:${pc}">${esc(own)}</span>`:''}</div><div class="imeta">${timeChip}${x.location?`<span class="mt">📍 ${esc(x.location)}</span>`:''}${x.description?`<span class="mi">${esc(x.description)}</span>`:''}</div></div><div class="iact"><button class="ib" title="Copy" onclick="copyItem('project','${x.id}')">⧉</button><button class="ib" onclick="editProject('${x.id}')">✏</button><button class="ib d" onclick="deleteProject('${x.id}')">✕</button></div></div>`;
+    } else if(x._type==='activity'){
+      const per=x.assignee!==''&&x.assignee!=null?G.people[parseInt(x.assignee)]:null,pc=per?PC[parseInt(x.assignee)%10]:null;
+      const astatus={planned:'📋',confirmed:'✅',inprogress:'🚀',done:'✔',cancelled:'❌'}[x.status]||'📋';
+      h+=`<div class="irow" style="margin-bottom:6px;border-color:rgba(251,146,60,0.3)"><div style="font-size:20px;flex-shrink:0">🎯</div><div class="ibody"><div class="imeta"><span style="font-size:14px;font-weight:500;color:var(--text)">${esc(x.name)}</span>${x.cat?`<span class="tag">${esc(x.cat)}</span>`:''}${per?`<span class="ptag" style="background:${pc}22;color:${pc}">${esc(per)}</span>`:''}${x.status?`<span style="font-size:11px">${astatus}</span>`:''}</div><div class="imeta">${timeChip}${x.endTime?`<span class="mt"> – ${fmtTime(x.endTime)}</span>`:''}${x.location?`<span class="mt">📍 ${esc(x.location)}</span>`:''}${x.note?`<span class="mi">${esc(x.note)}</span>`:''}${x.cost?`<span class="mt" style="color:var(--accent)">$${parseFloat(x.cost).toFixed(2)}</span>`:''}</div></div><div class="iact"><button class="ib" title="Copy" onclick="copyItem('activity','${x.id}')">⧉</button><button class="ib" onclick="editActivity('${x.id}')">✏</button><button class="ib d" onclick="deleteActivity('${x.id}');renderCalendar()">✕</button></div></div>`;
     } else {
       const att=(x.assignees||[]).map(a=>({name:G.people[parseInt(a)],color:PC[parseInt(a)%10]})).filter(a=>a.name);
       h+=`<div class="irow" style="margin-bottom:6px"><div style="font-size:20px;flex-shrink:0">📅</div><div class="ibody"><div class="imeta"><span style="font-size:14px;font-weight:500;color:var(--text)">${esc(x.title)}</span>${x.cat?`<span class="tag">${esc(x.cat)}</span>`:''}</div><div class="imeta">${x.time?`<span class="mt" style="font-weight:500;color:var(--accent)">🕐 ${fmtTime(x.time)}${x.endTime?' – '+fmtTime(x.endTime):''}</span>`:''}${x.endDate&&x.endDate!==x.date?`<span class="mt"> → ${fmtD(x.endDate)}</span>`:''}${x.location?`<span class="mt">📍 ${esc(x.location)}</span>`:''}</div>${x.notes?`<div class="mi" style="margin-top:2px">${esc(x.notes)}</div>`:''}${att.length?`<div class="flex-r" style="margin-top:6px">${att.map(a=>`<span class="ptag" style="background:${a.color}22;color:${a.color}">${esc(a.name)}</span>`).join('')}</div>`:''}</div><div class="iact"><button class="ib" title="Copy" onclick="copyItem('event','${x.id}')">⧉</button><button class="ib" onclick="editEvent('${x.id}')">✏</button><button class="ib d" onclick="deleteEvent('${x.id}')">✕</button></div></div>`;
@@ -1504,6 +1602,10 @@ function renderYearView(){
   G.purchases.filter(p=>p.due&&!p.bought&&(FP==='all'||String(p.assignee)===String(FP))).forEach(p=>{
     const c=p.assignee!==''&&p.assignee!=null?PC[parseInt(p.assignee)%10]:'#f7c948';
     addIM(p.due,'purchase',c,p.name);
+  });
+  (G.activities||[]).filter(a=>a.date&&(FP==='all'||String(a.assignee)===String(FP))).forEach(a=>{
+    const c=a.assignee!==''&&a.assignee!=null?PC[parseInt(a.assignee)%10]:'#fb923c';
+    addIM(a.date,'activity',c,a.name);
   });
 
   const todayStr=td();
@@ -1587,6 +1689,7 @@ function renderDayView(){
   G.reminders.filter(r=>r.due&&!r.done&&(FP==='all'||String(r.assignee)===String(FP))).forEach(r=>tryAdd(r,'reminder'));
   G.purchases.filter(p=>p.due&&!p.bought&&(FP==='all'||String(p.assignee)===String(FP))).forEach(p=>tryAdd(p,'purchase'));
   G.projects.filter(p=>p.due&&(FP==='all'||String(p.owner)===String(FP))).forEach(p=>tryAdd(p,'project'));
+  (G.activities||[]).filter(a=>a.date&&(FP==='all'||String(a.assignee)===String(FP))).forEach(a=>tryAdd(a,'activity'));
 
   // Split into timed vs all-day
   const timed=allItems.filter(x=>x.time);
@@ -1610,6 +1713,7 @@ function renderDayView(){
     reminder:{icon:'🔔',bg:'rgba(247,201,72,0.15)',border:'#f7c948'},
     purchase:{icon:'🛒',bg:'rgba(247,201,72,0.12)',border:'#f7c948'},
     project:{icon:'📋',bg:'rgba(192,132,252,0.15)',border:'#c084fc'},
+    activity:{icon:'🎯',bg:'rgba(251,146,60,0.15)',border:'#fb923c'},
   };
 
   function itemCard(x,showTime=true){
@@ -1753,7 +1857,7 @@ document.addEventListener('keydown',e=>{if(e.key==='Escape')closeModal();if(e.ke
 /* ══════════════════════════════════════════════════════
    PEOPLE VIEW
 ══════════════════════════════════════════════════════ */
-let PV_TYPES=['tasks','purchases','reminders','events','projects'];
+let PV_TYPES=['tasks','purchases','reminders','events','projects','activities'];
 let PV_MODE='all'; // 'all' | person index
 
 function renderPeople(){
@@ -1765,8 +1869,8 @@ function renderPeople(){
     return`<button class="av-chip ${active?'active':''}" onclick="setPVMode(${i})" style="${active?`border-color:${c};background:${c}20;color:${c}`:`border-color:${c}40`}"><span class="av-dot" style="background:${c};width:20px;height:20px;flex-shrink:0">${esc(inits(p))}</span>${esc(p)}</button>`;
   }).join('');
   const allActive=PV_MODE==='all';
-  const typeToggles=['tasks','purchases','reminders','events','projects'].map(t=>{
-    const labels={tasks:'☑ Tasks',purchases:'🛒 Purchases',reminders:'🔔 Reminders',events:'📅 Events',projects:'📋 Projects'};
+  const typeToggles=['tasks','purchases','reminders','events','projects','activities'].map(t=>{
+    const labels={tasks:'☑ Tasks',purchases:'🛒 Purchases',reminders:'🔔 Reminders',events:'📅 Events',projects:'📋 Projects',activities:'🎯 Activities'};
     const on=PV_TYPES.includes(t);
     return`<button class="pv-type-btn ${on?'active':''}" onclick="togglePVType('${t}')">${labels[t]}</button>`;
   }).join('');
@@ -1861,12 +1965,23 @@ function pvPersonColumn(name,pi,wide=false){
     }
   }
 
+  if(PV_TYPES.includes('activities')){
+    const items=(G.activities||[]).filter(a=>String(a.assignee)===String(pi));
+    if(items.length){
+      let h=`<div class="pv-section-label">🎯 Activities (${items.length})</div>`;
+      const statusIcon={planned:'📋',confirmed:'✅',inprogress:'🚀',done:'✔',cancelled:'❌'};
+      h+=items.sort((a,b)=>new Date(a.date||'9999')-new Date(b.date||'9999')).map(a=>`<div class="pv-mini"><div class="pv-mini-name">${esc(a.name)}</div><div class="pv-mini-meta">${a.date?`<span>📅 ${fmtD(a.date)}</span>`:''}${a.time?`<span>🕐 ${fmtTime(a.time)}</span>`:''}${a.location?`<span>📍 ${esc(a.location)}</span>`:''}${a.status?`<span>${statusIcon[a.status]||''} ${a.status}</span>`:''}</div></div>`).join('');
+      sections.push(h);
+    }
+  }
+
   const totalItems=
     (PV_TYPES.includes('tasks')?G.tasks.filter(t=>!t.done&&String(t.assignee)===String(pi)).length:0)+
     (PV_TYPES.includes('purchases')?G.purchases.filter(t=>!t.bought&&String(t.assignee)===String(pi)).length:0)+
     (PV_TYPES.includes('reminders')?G.reminders.filter(t=>!t.done&&String(t.assignee)===String(pi)).length:0)+
     (PV_TYPES.includes('events')?G.events.filter(e=>(e.assignees||[]).includes(String(pi))).length:0)+
-    (PV_TYPES.includes('projects')?G.projects.filter(p=>String(p.owner)===String(pi)).length:0);
+    (PV_TYPES.includes('projects')?G.projects.filter(p=>String(p.owner)===String(pi)).length:0)+
+    (PV_TYPES.includes('activities')?(G.activities||[]).filter(a=>String(a.assignee)===String(pi)).length:0);
 
   return`<div class="pv-col">
     <div class="pv-col-head" style="background:${c}18;border-bottom-color:${c}40">
@@ -1882,7 +1997,7 @@ function pvPersonColumn(name,pi,wide=false){
    GANTT CHART
 ══════════════════════════════════════════════════════ */
 let GT_SCALE='week'; // 'day'|'week'|'month'
-let GT_SOURCES={tasks:true,events:true,projects:true,reminders:true,purchases:true};
+let GT_SOURCES={tasks:true,events:true,projects:true,reminders:true,purchases:true,activities:true};
 let GT_OFFSET=0; // scroll offset in days from today
 let GT_TOOLTIP=null;
 
@@ -1927,6 +2042,13 @@ function ganttItems(){
       items.push({id:r.id,label:'Remember: '+r.text,sub:per||'',start:r.due,end:r.due,type:'reminder',color:c,done:r.done,icon:'🔔',time:r.time,location:r.location});
     });
   }
+  if(GT_SOURCES.activities){
+    (G.activities||[]).filter(a=>a.date&&(FP==='all'||String(a.assignee)===String(FP))).forEach(a=>{
+      const per=a.assignee!==''&&a.assignee!=null?G.people[parseInt(a.assignee)]:null;
+      const c=per?PC[parseInt(a.assignee)%10]:'#fb923c';
+      items.push({id:a.id,label:a.name,sub:per||'',start:a.date,end:a.date,type:'activity',color:c,done:a.status==='done'||a.status==='cancelled',icon:'🎯',time:a.time,location:a.location,notes:a.note});
+    });
+  }
   if(GT_SOURCES.purchases){
     G.purchases.filter(p=>p.due&&!p.bought&&(FP==='all'||String(p.assignee)===String(FP))).forEach(p=>{
       const per=p.assignee!==''&&p.assignee!=null?G.people[parseInt(p.assignee)]:null;
@@ -1941,7 +2063,7 @@ function ganttItems(){
 function renderGantt(){
   // Controls
   const scaleLabels={day:'Days',week:'Weeks',month:'Months'};
-  const srcToggles=Object.entries({tasks:'☑ Tasks',events:'📅 Events',projects:'📋 Projects',reminders:'🔔 Reminders',purchases:'🛒 Purchases'}).map(([k,l])=>`<button class="pv-type-btn ${GT_SOURCES[k]?'active':''}" onclick="toggleGTSrc('${k}')">${l}</button>`).join('');
+  const srcToggles=Object.entries({tasks:'☑ Tasks',events:'📅 Events',projects:'📋 Projects',reminders:'🔔 Reminders',purchases:'🛒 Purchases',activities:'🎯 Activities'}).map(([k,l])=>`<button class="pv-type-btn ${GT_SOURCES[k]?'active':''}" onclick="toggleGTSrc('${k}')">${l}</button>`).join('');
   document.getElementById('gantt-controls').innerHTML=`
     <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;width:100%">
       <div style="display:flex;gap:4px">
@@ -2109,7 +2231,7 @@ document.addEventListener('mousemove',e=>{const t=document.getElementById('gantt
 
 function ganttItemClick(type,id){
   const m={task:'tasks',purchase:'purchases',reminder:'reminders',event:'events',project:'projects'};
-  const fn={task:editTask,purchase:editPurchase,reminder:editReminder,event:editEvent,project:editProject};
+  const fn={task:editTask,purchase:editPurchase,reminder:editReminder,event:editEvent,project:editProject,activity:editActivity};
   if(fn[type])fn[type](id);
 }
 
@@ -2462,6 +2584,158 @@ function initTripMap(trip){
     const idx=G.trips.indexOf(trip);
     geocodeTrip(idx);
   }
+}
+
+
+/* ══════════════════════════════════════════════════════
+   ACTIVITIES
+══════════════════════════════════════════════════════ */
+const ACT_STATUS={planned:'📋 Planned',confirmed:'✅ Confirmed',inprogress:'🚀 In Progress',done:'✔ Done',cancelled:'❌ Cancelled'};
+const ACT_STATUS_COL={planned:'var(--text3)',confirmed:'#4ade80',inprogress:'var(--accent)',done:'#4ade80',cancelled:'#ff6b6b'};
+let ACT_FILTER='all';
+
+function addActivity(){
+  const n=document.getElementById('a-name').value.trim();
+  if(!n){toast('Enter an activity name');return;}
+  if(!G.activities)G.activities=[];
+  G.activities.push({
+    id:uid(),name:n,
+    date:document.getElementById('a-date').value,
+    time:document.getElementById('a-time').value,
+    endTime:document.getElementById('a-endTime').value,
+    location:document.getElementById('a-location').value.trim(),
+    cat:document.getElementById('a-cat').value,
+    assignee:document.getElementById('a-assignee').value,
+    note:document.getElementById('a-note').value.trim(),
+    cost:document.getElementById('a-cost').value,
+    status:document.getElementById('a-status').value,
+    created:td()
+  });
+  ['a-name','a-location','a-note','a-cost'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('a-date').value='';
+  document.getElementById('a-time').value='';
+  document.getElementById('a-endTime').value='';
+  document.getElementById('a-status').value='planned';
+  save();renderActivities();toast('Activity added!');
+}
+
+function toggleActivityDone(id){
+  const a=(G.activities||[]).find(x=>x.id===id);
+  if(a){a.status=a.status==='done'?'confirmed':'done';save();renderActivities();}
+}
+
+function deleteActivity(id){
+  G.activities=(G.activities||[]).filter(x=>x.id!==id);
+  save();renderActivities();renderHdr();toast('Deleted');
+}
+
+function editActivity(id){
+  const a=(G.activities||[]).find(x=>x.id===id);if(!a)return;
+  openModal('Edit Activity',bForm([
+    {l:'Activity name',id:'m-name',t:'text',v:a.name},
+    {l:'Date',id:'m-date',t:'date',v:a.date||''},
+    {l:'Start time',id:'m-time',t:'time',v:a.time||''},
+    {l:'End time',id:'m-endTime',t:'time',v:a.endTime||''},
+    {l:'Location',id:'m-loc',t:'text',v:a.location||''},
+    {l:'Category',id:'m-cat',t:'sel',o:G.categories,v:a.cat||''},
+    {l:'Assign to',id:'m-ass',t:'sel',o:[['','Anyone'],...G.people.map((p,i)=>[String(i),p])],v:String(a.assignee??'')},
+    {l:'Note',id:'m-note',t:'text',v:a.note||''},
+    {l:'Cost',id:'m-cost',t:'number',v:a.cost||''},
+    {l:'Status',id:'m-status',t:'sel',o:[['planned','📋 Planned'],['confirmed','✅ Confirmed'],['inprogress','🚀 In Progress'],['done','✔ Done'],['cancelled','❌ Cancelled']],v:a.status||'planned'},
+  ]),()=>{
+    a.name=gv('m-name');a.date=gv('m-date');a.time=gv('m-time');a.endTime=gv('m-endTime');
+    a.location=gv('m-loc');a.cat=gv('m-cat');a.assignee=gv('m-ass');
+    a.note=gv('m-note');a.cost=gv('m-cost');a.status=gv('m-status');
+    save();renderActivities();closeModal();toast('Saved!');
+  });
+}
+
+async function geocodeActivityLocation(actId){
+  const a=(G.activities||[]).find(x=>x.id===actId);
+  if(!a||!a.location){toast('No location on this activity');return;}
+  if(a.locLat&&a.locLng){
+    toast('Already on map! Opening Locations…');
+    setTab('locations');setTimeout(()=>setLocView('map'),80);return;
+  }
+  const btn=document.getElementById('amap-btn-'+actId);
+  if(btn){btn.textContent='…';btn.disabled=true;}
+  const coords=await geocodeSingle(a.location);
+  if(coords){
+    (G.activities||[]).filter(x=>x.location===a.location).forEach(x=>{x.locLat=coords.lat;x.locLng=coords.lng;});
+    save();renderActivities();toast('📍 Mapped! Tap again to view on map.');
+  } else {
+    toast('Could not find "'+a.location+'" — try a full address');
+    if(btn){btn.textContent='📍';btn.disabled=false;}
+  }
+}
+
+function renderActivities(){
+  if(!G.activities)G.activities=[];
+  const filterBar=document.getElementById('activities-filter-bar');
+
+  // Status filter bar
+  const statuses=['all','planned','confirmed','inprogress','done','cancelled'];
+  filterBar.innerHTML=statuses.map(s=>`<button class="fbtn ${ACT_FILTER===s?'active':''}" onclick="ACT_FILTER='${s}';renderActivities()">${s==='all'?'All':ACT_STATUS[s]||s}</button>`).join('');
+
+  let list=G.activities.filter(a=>{
+    if(FP!=='all'&&String(a.assignee)!==String(FP))return false;
+    if(FC!=='all'&&a.cat!==FC)return false;
+    if(ACT_FILTER!=='all'&&a.status!==ACT_FILTER)return false;
+    return true;
+  }).sort((a,b)=>{
+    const da=a.date||'9999',db=b.date||'9999';
+    if(da!==db) return da.localeCompare(db);
+    return (a.time||'').localeCompare(b.time||'');
+  });
+
+  const el=document.getElementById('activities-list');
+  if(!list.length){el.innerHTML='<div class="empty-s">No activities yet — add one above</div>';return;}
+
+  // Group by date
+  const grouped={};
+  list.forEach(a=>{
+    const dk=a.date||'_nodate';
+    if(!grouped[dk])grouped[dk]=[];
+    grouped[dk].push(a);
+  });
+
+  let html='';
+  Object.entries(grouped).sort(([a],[b])=>a.localeCompare(b)).forEach(([dk,items])=>{
+    const label=dk==='_nodate'?'No date':new Date(dk+'T00:00:00').toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric',year:'numeric'});
+    const isToday=dk===td();
+    html+=`<div style="font-size:11px;font-weight:600;color:${isToday?'var(--accent)':'var(--text3)'};text-transform:uppercase;letter-spacing:.08em;margin:12px 0 6px;padding-bottom:4px;border-bottom:1px solid var(--border)">${label}${isToday?' · Today':''}</div>`;
+    items.forEach(a=>{
+      const per=a.assignee!==''&&a.assignee!=null?G.people[parseInt(a.assignee)]:null;
+      const pc=per?PC[parseInt(a.assignee)%10]:null;
+      const scol=ACT_STATUS_COL[a.status]||'var(--text3)';
+      const isDone=a.status==='done'||a.status==='cancelled';
+      const timeStr=a.time?fmtTime(a.time)+(a.endTime?' – '+fmtTime(a.endTime):''):'';
+      const hasCoords=a.locLat&&a.locLng;
+      html+=`<div class="irow ${isDone?'done-row':''}" style="border-left:3px solid ${scol};margin-bottom:6px">
+        <input type="checkbox" class="ichk" ${a.status==='done'?'checked':''} onchange="toggleActivityDone('${a.id}')">
+        <div class="ibody">
+          <div class="imeta" style="margin-bottom:2px">
+            <span class="iname ${isDone?'st':''}" style="font-size:14px">${esc(a.name)}</span>
+            ${a.cat?`<span class="tag">${esc(a.cat)}</span>`:''}
+            ${per?`<span class="ptag" style="background:${pc}22;color:${pc}">${esc(per)}</span>`:''}
+            <span style="font-size:11px;color:${scol}">${ACT_STATUS[a.status]||a.status}</span>
+          </div>
+          <div class="imeta">
+            ${timeStr?`<span class="mt" style="color:var(--accent);font-weight:500">🕐 ${timeStr}</span>`:''}
+            ${a.location?`<span class="mt" style="display:inline-flex;align-items:center;gap:4px">📍 ${esc(a.location)}${hasCoords?`<button id="amap-btn-${a.id}" class="sm-btn" style="font-size:10px;padding:1px 6px;color:var(--accent);border-color:var(--accent)" onclick="event.stopPropagation();geocodeActivityLocation('${a.id}')" title="View on map">🗺 View map</button>`:`<button id="amap-btn-${a.id}" class="sm-btn" style="font-size:10px;padding:1px 6px" onclick="event.stopPropagation();geocodeActivityLocation('${a.id}')" title="Add to map">📍 Add to map</button>`}</span>`:''}
+            ${a.note?`<span class="mi">${esc(a.note)}</span>`:''}
+            ${a.cost?`<span class="mt" style="color:var(--accent);font-weight:500">$${parseFloat(a.cost).toFixed(2)}</span>`:''}
+          </div>
+        </div>
+        <div class="iact">
+          <button class="ib" title="Copy" onclick="copyItem('activity','${a.id}')">⧉</button>
+          <button class="ib" onclick="editActivity('${a.id}')">✏</button>
+          <button class="ib d" onclick="deleteActivity('${a.id}')">✕</button>
+        </div>
+      </div>`;
+    });
+  });
+  el.innerHTML=html;
 }
 
 /* ── BOOT ── */
