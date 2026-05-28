@@ -4,17 +4,22 @@
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>Group Planner</title>
-<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800;900&family=Quicksand:wght@400;500;600;700&display=swap" rel="stylesheet"/>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 :root{
-  --bg:#1a0f2e;--card:#2d1b4e;--surface:#3d2560;--border:#5a3580;
-  --accent:#9b59f7;--accent-light:rgba(155,89,247,0.18);
-  --text:#ede0ff;--text2:#c4a8f5;--text3:#8a6db5;
-  --tag-bg:rgba(155,89,247,0.2);--tag-border:rgba(155,89,247,0.4);
-  --hdr:linear-gradient(135deg,#1a0f2e,#2d1b4e,#4a2880);
+  --bg:#fdf4ff;--card:#ffffff;--surface:#f8eeff;--border:#e8d5f5;
+  --accent:#c084fc;--accent2:#f472b6;--accent3:#60d8c4;
+  --accent-light:rgba(192,132,252,0.15);
+  --text:#3d1a5c;--text2:#7c4fa0;--text3:#b08cc8;
+  --tag-bg:rgba(192,132,252,0.15);--tag-border:rgba(192,132,252,0.4);
+  --hdr:linear-gradient(135deg,#fceeff,#ffe4f7,#e8d5ff);
+  --shadow:0 4px 20px rgba(192,132,252,0.15);
+  --shadow-sm:0 2px 8px rgba(192,132,252,0.12);
+  --r:16px;--r-lg:22px;--r-xl:28px;
+  --pink:#f472b6;--mint:#60d8c4;--peach:#fb923c;--yellow:#fbbf24;--blue:#60a5fa;--lavender:#c084fc;
 }
-body{font-family:'DM Sans',system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;font-size:14px}
+body{font-family:'Nunito',system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;font-size:14px;background-image:radial-gradient(circle at 20% 20%,rgba(192,132,252,.08) 0%,transparent 50%),radial-gradient(circle at 80% 80%,rgba(244,114,182,.06) 0%,transparent 50%)}
 a{color:var(--accent);text-decoration:none}
 .screen{display:none}.screen.active{display:block}
 .lock-wrap{min-height:100vh;display:flex;align-items:center;justify-content:center}
@@ -294,6 +299,803 @@ select option{background:var(--card)}
 .group-suggestion:hover{background:var(--surface)}
 .group-suggestion span{font-size:10px;color:var(--text3);margin-left:4px}
 
+
+/* ── HOME GRID ── */
+#home-panel{padding:0}
+.home-greeting{padding:20px 20px 0;font-size:13px;color:var(--text3)}
+.home-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;padding:14px 20px 20px}
+@media(max-width:700px){.home-grid{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:380px){.home-grid{grid-template-columns:1fr 1fr}}
+.home-tile{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:16px 12px 14px;display:flex;flex-direction:column;align-items:center;gap:8px;cursor:pointer;transition:all .18s;user-select:none;position:relative;overflow:hidden}
+.home-tile::before{content:'';position:absolute;inset:0;opacity:0;transition:opacity .18s;border-radius:16px}
+.home-tile:hover{transform:translateY(-3px);border-color:var(--accent)}
+.home-tile:hover::before{opacity:1}
+.home-tile:active{transform:scale(0.97)}
+.home-tile.wide{grid-column:span 2;flex-direction:row;justify-content:flex-start;padding:14px 16px;gap:14px}
+.home-tile.wide .tile-art{width:56px;height:56px;flex-shrink:0}
+.home-tile.wide .tile-info{align-items:flex-start}
+.tile-art{width:60px;height:60px;border-radius:14px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.tile-info{display:flex;flex-direction:column;align-items:center;gap:2px}
+.tile-name{font-size:12px;font-weight:600;color:var(--text);letter-spacing:.01em}
+.tile-count{font-size:10px;color:var(--text3)}
+
+/* ── SECTION HEADER (replaces tab bar when inside a section) ── */
+#section-header{display:none;background:var(--card);border-bottom:1px solid var(--border);padding:10px 16px;align-items:center;gap:12px}
+#section-header.visible{display:flex}
+#back-btn{background:transparent;border:1px solid var(--border);color:var(--text3);font-family:'DM Sans',sans-serif;font-size:12px;font-weight:500;padding:5px 12px;border-radius:999px;cursor:pointer;display:flex;align-items:center;gap:5px;transition:all .15s;flex-shrink:0}
+#back-btn:hover{border-color:var(--accent);color:var(--accent)}
+#section-title{font-family:'DM Serif Display',serif;font-size:18px;color:var(--text);flex:1}
+#section-actions{display:flex;gap:6px;align-items:center}
+
+/* ── VISUAL REFRESH ── */
+#app-header{background:linear-gradient(135deg,#1a0f2e 0%,#2d1b4e 60%,#3d2560 100%);padding:16px 22px}
+.hdr-title{font-size:22px;letter-spacing:-.01em}
+#tab-bar{display:none}
+#main-content{padding:0}
+.tab-panel{padding:16px 20px}
+.tab-panel.home-view{padding:0}
+.add-card{background:linear-gradient(135deg,var(--card),var(--surface));border-radius:14px;padding:18px}
+.add-title{font-size:12px;font-weight:600;letter-spacing:.12em;margin-bottom:14px}
+.irow{border-radius:12px;padding:11px 14px;transition:all .15s}
+.irow:hover{border-color:var(--accent);background:var(--surface)}
+.pcard{border-radius:14px}
+
+
+/* ── DASHBOARD ── */
+.dash-header{padding:18px 20px 10px;display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.dash-greeting{font-family:'DM Serif Display',serif;font-size:22px;color:var(--text)}
+.dash-sub{font-size:12px;color:var(--text3);margin-top:2px}
+#home-icon-strip{padding:0 20px 10px;border-bottom:1px solid var(--border)}
+#home-icon-strip .home-tile{padding:10px 8px 8px;border-radius:12px}
+#home-icon-strip .tile-art{width:44px;height:44px;border-radius:10px}
+#home-icon-strip .tile-name{font-size:11px}
+#home-icon-strip .tile-count{display:none}
+#home-icon-strip .home-grid{gap:7px}
+.dash-widgets{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;padding:16px 20px 24px}
+@media(max-width:900px){.dash-widgets{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:560px){.dash-widgets{grid-template-columns:1fr}}
+.dw{background:var(--card);border:1px solid var(--border);border-radius:14px;display:flex;flex-direction:column;overflow:hidden;transition:border-color .15s}
+.dw:hover{border-color:var(--accent)}
+.dw-wide{grid-column:span 2}
+@media(max-width:900px){.dw-wide{grid-column:span 1}}
+.dw-head{display:flex;align-items:center;gap:6px;padding:11px 14px 10px;border-bottom:1px solid var(--border);background:rgba(255,255,255,.03)}
+.dw-icon{font-size:14px;flex-shrink:0}
+.dw-title{font-size:12px;font-weight:600;color:var(--text);flex:1;letter-spacing:.01em}
+.dw-count{font-size:10px;color:var(--text3);background:var(--surface);border-radius:999px;padding:2px 7px;flex-shrink:0}
+.dw-more{background:transparent;border:none;color:var(--accent);font-size:11px;font-family:'DM Sans',sans-serif;cursor:pointer;padding:0;flex-shrink:0;opacity:.8;transition:opacity .15s}
+.dw-more:hover{opacity:1}
+.dw-body{flex:1;padding:8px 14px 10px;display:flex;flex-direction:column;gap:5px;min-height:100px;max-height:220px;overflow-y:auto;scrollbar-width:thin;scrollbar-color:var(--border) transparent}
+.dw-body-row{flex-direction:row;flex-wrap:wrap;gap:8px;max-height:160px}
+.dw-empty{font-size:12px;color:var(--text3);font-style:italic;padding:12px 0;text-align:center}
+.dw-row{display:flex;align-items:center;gap:8px;padding:5px 8px;border-radius:8px;background:var(--surface);font-size:12px;color:var(--text);cursor:pointer;transition:background .1s;min-width:0}
+.dw-row:hover{background:var(--border)}
+.dw-row-check{accent-color:var(--accent);width:14px;height:14px;cursor:pointer;flex-shrink:0}
+.dw-row-name{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.dw-row-name.done{text-decoration:line-through;opacity:.5}
+.dw-row-meta{font-size:10px;color:var(--text3);flex-shrink:0;white-space:nowrap}
+.dw-row-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.dw-trip-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:8px 12px;min-width:140px;font-size:12px;cursor:pointer;transition:border-color .15s}
+.dw-trip-card:hover{border-color:var(--accent)}
+.dw-trip-name{font-size:13px;font-weight:500;color:var(--text);margin-bottom:3px}
+.dw-trip-meta{font-size:11px;color:var(--text3)}
+.dw-person{display:flex;flex-direction:column;align-items:center;gap:5px;padding:8px;background:var(--surface);border-radius:10px;min-width:70px;cursor:pointer}
+.dw-person:hover{background:var(--border)}
+.dw-person-av{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600;color:#fff}
+.dw-person-name{font-size:11px;color:var(--text2);text-align:center;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:70px}
+.dw-proj-bar{height:4px;background:var(--border);border-radius:2px;overflow:hidden;margin-top:3px}
+.dw-proj-fill{height:100%;background:var(--accent);border-radius:2px}
+.dw-add{display:flex;gap:6px;padding:8px 14px 10px;border-top:1px solid var(--border)}
+.dw-input{flex:1;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:6px 10px;font-size:12px;color:var(--text);font-family:'DM Sans',sans-serif;outline:none}
+.dw-input:focus{border-color:var(--accent)}
+.dw-input::placeholder{color:var(--text3)}
+.dw-add-btn{background:var(--accent);border:none;color:#fff;width:30px;height:30px;border-radius:8px;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1;flex-shrink:0;font-family:'DM Sans',sans-serif}
+
+
+/* ══════════════════════════════
+   KAWAII THEME OVERRIDES
+══════════════════════════════ */
+
+/* Fonts */
+body,input,select,button,.btn,.tab-btn,.fbtn,.sm-btn,.ib,.dw-input{font-family:'Nunito',system-ui,sans-serif!important}
+.lock-title,.hdr-title,.mtitle,.dash-greeting,.section-title-text{font-family:'Quicksand',system-ui,sans-serif!important;font-weight:700}
+
+/* Scrollbar */
+::-webkit-scrollbar{width:6px;height:6px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:999px}
+
+/* Lock/Auth screens */
+.lock-wrap{background:var(--bg)}
+.lock-card{background:var(--card);border:2px solid var(--border);border-radius:var(--r-xl);box-shadow:var(--shadow);padding:2.2rem}
+.lock-icon{font-size:40px;animation:bounce 2s ease-in-out infinite}
+@keyframes bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
+.lock-title{font-size:28px;background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.lock-sub{color:var(--text3);font-size:13px}
+.err-m{border-radius:var(--r);border-color:rgba(244,114,182,.3);background:rgba(244,114,182,.1);color:#e11d7a}
+
+/* Inputs */
+input,select{border-radius:var(--r);border:2px solid var(--border);background:#faf5ff;color:var(--text);font-size:13px;transition:all .2s}
+input:focus,select:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(192,132,252,.2);background:#fff}
+input::placeholder{color:var(--text3)}
+.field label{color:var(--text2);font-weight:700;font-size:11px}
+
+/* Buttons */
+.btn{border-radius:999px;font-weight:700;font-size:13px;height:38px;letter-spacing:.01em;transition:all .2s}
+.btn-p{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;box-shadow:0 4px 14px rgba(192,132,252,.4)}
+.btn-p:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(192,132,252,.5);opacity:1}
+.btn-p:active{transform:translateY(0)}
+.btn-g{border:2px solid var(--border);color:var(--text2);background:#fff}
+.btn-g:hover{border-color:var(--accent);color:var(--accent);background:var(--accent-light)}
+.ib{border-radius:10px;border:2px solid var(--border);background:#fff;color:var(--text3)}
+.ib:hover{border-color:var(--accent);color:var(--accent);background:var(--accent-light)}
+.ib.d{border-color:rgba(244,114,182,.4);color:var(--pink)}
+.sm-btn{border-radius:999px;border:2px solid var(--border);font-weight:600;background:#fff;color:var(--text2)}
+.sm-btn:hover{border-color:var(--accent);color:var(--accent);background:var(--accent-light)}
+.sm-btn.danger{color:var(--pink);border-color:rgba(244,114,182,.4)}
+
+/* Header */
+#app-header{background:var(--hdr);border-bottom:2px solid var(--border);padding:16px 22px;box-shadow:var(--shadow-sm)}
+.hdr-title{font-size:22px;color:var(--text);background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.hdr-sub{color:var(--text3);font-size:11px;font-weight:600}
+
+/* Section header */
+#section-header{background:var(--hdr);border-bottom:2px solid var(--border)}
+#back-btn{border:2px solid var(--border);color:var(--text2);background:#fff;border-radius:999px;font-weight:700}
+#back-btn:hover{border-color:var(--accent);color:var(--accent);background:var(--accent-light)}
+#section-title{font-family:'Quicksand',sans-serif!important;font-weight:700;color:var(--text);font-size:18px}
+
+/* Tab bar */
+.tab-btn{color:var(--text3);font-weight:600}
+.tab-btn.active{color:var(--accent);border-bottom-color:var(--accent)}
+#tab-bar{background:var(--card);border-bottom:2px solid var(--border)}
+.fbtn{border-radius:999px;font-weight:700;border:2px solid var(--border);color:var(--text2);background:#fff}
+.fbtn.active{border-color:var(--accent);background:var(--accent-light);color:var(--accent)}
+
+/* Cards & rows */
+.add-card{background:var(--card);border:2px solid var(--border);border-radius:var(--r-lg);box-shadow:var(--shadow-sm)}
+.add-title{color:var(--text2);font-weight:800;font-size:12px;letter-spacing:.06em}
+.irow{background:var(--card);border:2px solid var(--border);border-radius:var(--r);box-shadow:var(--shadow-sm);transition:all .2s}
+.irow:hover{transform:translateY(-2px);border-color:var(--accent);box-shadow:0 6px 20px rgba(192,132,252,.2)}
+.iname{color:var(--text);font-weight:600}
+.mt,.mi{color:var(--text3);font-weight:600}
+.tag{background:var(--tag-bg);border:1.5px solid var(--tag-border);color:var(--accent);border-radius:999px;font-weight:700}
+.ptag,.badge{border-radius:999px;font-weight:700}
+.b-ok{background:rgba(96,216,196,.15);color:#0d9488}
+.b-soon{background:rgba(251,191,36,.15);color:#d97706}
+.b-ov{background:rgba(244,114,182,.15);color:#e11d7a}
+
+/* Tags */
+.av-chip{border-radius:999px;border:2px solid var(--border);background:#fff;color:var(--text2);font-weight:700}
+.av-chip.active{border-color:var(--accent);background:var(--accent-light);color:var(--accent)}
+
+/* Modals */
+.modal-box{background:var(--card);border:2px solid var(--border);border-radius:var(--r-xl);box-shadow:0 20px 60px rgba(192,132,252,.3)}
+.mtitle{color:var(--text)}
+.modal-ov{background:rgba(61,26,92,.4);backdrop-filter:blur(4px)}
+
+/* Location/map cards */
+.lcard{background:var(--card);border:2px solid var(--border);border-radius:var(--r);box-shadow:var(--shadow-sm)}
+.loc-view-toggle .lvt-btn{border:2px solid var(--border);border-radius:999px;font-weight:700;background:#fff}
+.lvt-btn.active{border-color:var(--accent);background:var(--accent-light);color:var(--accent)}
+
+/* Project cards */
+.pcard{background:var(--card);border:2px solid var(--border);border-radius:var(--r-lg);box-shadow:var(--shadow-sm)}
+.pname{color:var(--text);font-weight:700}
+.pbar-fill{background:linear-gradient(90deg,var(--accent),var(--accent2))}
+
+/* Calendar */
+.cal-wrap{border:2px solid var(--border);border-radius:var(--r-lg);box-shadow:var(--shadow-sm)}
+.cal-nav{background:var(--surface);border-bottom:2px solid var(--border)}
+.cal-num.today-n{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff}
+.cal-ep{background:var(--accent-light);color:var(--accent);border-radius:6px;font-weight:700}
+
+/* Settings */
+.ss{max-width:680px}
+.st{color:var(--text);font-weight:800;font-size:15px;border-bottom:2px solid var(--border)}
+.sch-btn{border:2px solid var(--border);border-radius:var(--r);font-weight:700;background:#fff}
+
+/* Toast */
+#toast{background:linear-gradient(135deg,var(--accent),var(--accent2));border-radius:999px;font-weight:700;box-shadow:0 4px 20px rgba(192,132,252,.5)}
+
+/* People view */
+.pv-col{background:var(--card);border:2px solid var(--border);border-radius:var(--r-lg)}
+.pv-col-head{background:var(--surface);border-bottom:2px solid var(--border)}
+.pv-mini{background:var(--surface);border:2px solid var(--border);border-radius:var(--r)}
+.pv-type-btn{border:2px solid var(--border);border-radius:999px;font-weight:700;background:#fff}
+.pv-type-btn.active{border-color:var(--accent);background:var(--accent-light);color:var(--accent)}
+
+/* Gantt */
+.gantt-outer{border:2px solid var(--border);background:var(--card)}
+.gantt-bar{border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,.1)}
+
+/* Empty states */
+.empty-s{color:var(--text3);font-weight:700;font-size:13px}
+
+/* ── HOME + DASHBOARD KAWAII ── */
+.dash-header{background:transparent;padding:20px 22px 14px}
+.dash-greeting{font-size:24px;font-family:'Quicksand',sans-serif!important;font-weight:700;background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.dash-sub{color:var(--text3);font-weight:700}
+#home-icon-strip{background:transparent;border-bottom:2px solid var(--border);padding:0 22px 14px}
+.home-tile{background:var(--card);border:2px solid var(--border);border-radius:var(--r-lg);box-shadow:var(--shadow-sm);transition:all .2s}
+.home-tile:hover{transform:translateY(-4px) scale(1.02);box-shadow:0 8px 28px rgba(192,132,252,.25);border-color:var(--accent)}
+.home-tile:active{transform:scale(0.97)}
+.tile-name{color:var(--text);font-weight:800;font-size:12px}
+
+.dash-widgets{padding:18px 22px 28px}
+.dw{background:var(--card);border:2px solid var(--border);border-radius:var(--r-lg);box-shadow:var(--shadow-sm);transition:all .2s}
+.dw:hover{border-color:var(--accent);box-shadow:0 6px 24px rgba(192,132,252,.2)}
+.dw-head{background:var(--surface);border-bottom:2px solid var(--border);border-radius:var(--r-lg) var(--r-lg) 0 0}
+.dw-title{color:var(--text);font-weight:800;font-size:12px}
+.dw-count{background:var(--accent-light);color:var(--accent);font-weight:700;border-radius:999px}
+.dw-more{color:var(--accent);font-weight:800;font-size:11px}
+.dw-row{background:var(--surface);border-radius:var(--r);transition:all .15s;font-weight:600;color:var(--text)}
+.dw-row:hover{background:var(--accent-light);transform:translateX(3px)}
+.dw-row-meta{color:var(--text3);font-weight:700}
+.dw-row-name{font-weight:600}
+.dw-empty{color:var(--text3);font-weight:700}
+.dw-add{background:var(--surface);border-top:2px solid var(--border)}
+.dw-input{background:#fff;border:2px solid var(--border);border-radius:999px;color:var(--text);font-weight:600}
+.dw-input:focus{border-color:var(--accent)}
+.dw-add-btn{background:linear-gradient(135deg,var(--accent),var(--accent2));border-radius:999px;box-shadow:0 2px 10px rgba(192,132,252,.4)}
+.dw-trip-card{background:var(--surface);border:2px solid var(--border);border-radius:var(--r)}
+.dw-trip-card:hover{border-color:var(--accent)}
+.dw-trip-name{color:var(--text);font-weight:700}
+.dw-trip-meta{color:var(--text3);font-weight:600}
+.dw-person{background:var(--surface);border-radius:var(--r)}
+.dw-person:hover{background:var(--accent-light)}
+.dw-person-name{color:var(--text2);font-weight:700}
+.dw-proj-fill{background:linear-gradient(90deg,var(--accent),var(--mint))}
+.dw-proj-bar{background:var(--border)}
+
+/* Floating star decorations on home */
+.home-view::before{content:'✦';position:fixed;top:10%;right:5%;font-size:24px;color:rgba(192,132,252,.2);pointer-events:none;animation:spin-float 8s ease-in-out infinite}
+.home-view::after{content:'✿';position:fixed;bottom:15%;left:3%;font-size:20px;color:rgba(244,114,182,.2);pointer-events:none;animation:spin-float 6s ease-in-out infinite reverse}
+@keyframes spin-float{0%,100%{transform:translateY(0) rotate(0deg)}50%{transform:translateY(-12px) rotate(180deg)}}
+
+/* Cat ears on the header title ✦ */
+#app-header::before{content:'≽^•⩊•^≼';font-size:11px;position:absolute;right:18px;bottom:6px;color:var(--text3);font-family:'Nunito',sans-serif;opacity:.5;pointer-events:none}
+#app-header{position:relative}
+
+/* Priority colors kawaii */
+.ptag[style*="low"]{background:rgba(96,216,196,.15)!important;color:#0d9488!important}
+.ptag[style*="high"]{background:rgba(244,114,182,.15)!important;color:#e11d7a!important}
+
+
+/* ══════════════════════════════
+   EXTRA KAWAII — SECTION PAGES
+══════════════════════════════ */
+
+/* ── Section page wrapper ── */
+.tab-panel{padding:20px 22px 32px;animation:fadeUp .25s ease}
+@keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+.tab-panel.home-view{padding:0;animation:none}
+
+/* ── Add-form cards ── */
+.add-card{
+  border-radius:22px;padding:20px 22px 18px;margin-bottom:18px;
+  background:linear-gradient(135deg,#fff 0%,#fdf0ff 100%);
+  border:2px solid var(--border);
+  box-shadow:0 4px 24px rgba(192,132,252,.13);
+  position:relative;overflow:hidden;
+}
+.add-card::before{
+  content:'';position:absolute;top:-30px;right:-30px;
+  width:100px;height:100px;border-radius:50%;
+  background:radial-gradient(circle,rgba(192,132,252,.12),transparent 70%);
+  pointer-events:none;
+}
+.add-title{
+  font-size:13px;font-weight:900;letter-spacing:.08em;
+  background:linear-gradient(135deg,var(--accent),var(--accent2));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+  background-clip:text;margin-bottom:16px;
+  display:flex;align-items:center;gap:6px;
+}
+.add-title::before{content:'✦';-webkit-text-fill-color:var(--accent);font-size:14px}
+.field label{
+  color:var(--text2);font-weight:800;font-size:11px;
+  letter-spacing:.06em;text-transform:uppercase;
+}
+input,select{
+  border-radius:14px;border:2px solid var(--border);
+  background:#faf5ff;padding:9px 13px;
+  font-weight:600;transition:all .2s;
+}
+input:focus,select:focus{
+  border-color:var(--accent);background:#fff;
+  box-shadow:0 0 0 4px rgba(192,132,252,.15);
+  transform:scale(1.01);
+}
+
+/* ── Item rows ── */
+.irow{
+  border-radius:16px;padding:12px 16px;
+  border:2px solid var(--border);
+  background:#fff;
+  box-shadow:0 2px 10px rgba(192,132,252,.08);
+  transition:all .2s;position:relative;
+  border-left:4px solid var(--accent);
+}
+.irow:hover{
+  transform:translateY(-3px) translateX(2px);
+  box-shadow:0 8px 28px rgba(192,132,252,.2);
+  border-color:var(--accent);
+}
+.irow.done-row{opacity:.45;border-left-color:var(--border)}
+.iname{font-weight:700;font-size:14px;color:var(--text)}
+.iname.st{text-decoration:line-through;opacity:.6}
+.imeta{gap:6px;margin-top:5px}
+.mt{font-weight:600;font-size:12px;color:var(--text3)}
+.tag{font-weight:800;font-size:10px;border-radius:999px;padding:3px 9px;
+  background:linear-gradient(135deg,rgba(192,132,252,.18),rgba(244,114,182,.12));
+  border:1.5px solid rgba(192,132,252,.35);color:var(--accent)}
+.ichk{accent-color:var(--accent);width:17px;height:17px}
+
+/* Priority left-border colors */
+.irow[data-priority="high"]{border-left-color:var(--pink)}
+.irow[data-priority="low"]{border-left-color:var(--mint)}
+.irow[data-priority="medium"]{border-left-color:var(--lavender)}
+
+/* ── Section header banner ── */
+#section-header.visible{
+  background:linear-gradient(135deg,#fceeff,#fff0fa,#eef4ff);
+  border-bottom:2px solid var(--border);
+  padding:12px 20px;gap:14px;
+}
+#back-btn{
+  background:#fff;border:2px solid var(--border);
+  border-radius:999px;font-weight:800;font-size:12px;
+  padding:6px 16px;color:var(--text2);
+  box-shadow:0 2px 8px rgba(192,132,252,.1);
+}
+#back-btn:hover{
+  border-color:var(--accent);color:var(--accent);
+  background:var(--accent-light);transform:translateX(-2px);
+}
+#section-title{
+  font-size:20px;font-weight:800;color:var(--text);
+  background:linear-gradient(135deg,var(--accent),var(--accent2));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+  background-clip:text;
+}
+
+/* ── App header ── */
+#app-header{
+  background:linear-gradient(135deg,#fceeff 0%,#fff5fd 50%,#eef0ff 100%);
+  border-bottom:2px solid var(--border);
+  padding:16px 24px;
+  box-shadow:0 2px 16px rgba(192,132,252,.12);
+}
+.hdr-title{
+  font-size:22px;font-weight:900;
+  background:linear-gradient(135deg,var(--accent),var(--accent2),var(--accent3));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+  background-clip:text;
+}
+#app-header::before{
+  content:'🌸 ✨ 💜';font-size:10px;
+  position:absolute;right:20px;bottom:8px;
+  color:var(--text3);opacity:.5;pointer-events:none;
+  letter-spacing:4px;
+}
+
+/* ── Buttons prettier ── */
+.btn-p{
+  background:linear-gradient(135deg,#c084fc,#f472b6);
+  border-radius:999px;font-weight:800;height:40px;
+  box-shadow:0 4px 16px rgba(192,132,252,.4);
+  letter-spacing:.02em;
+}
+.btn-p:hover{transform:translateY(-2px) scale(1.02);box-shadow:0 8px 24px rgba(192,132,252,.5);opacity:1}
+.btn-p:active{transform:scale(0.97)}
+.btn-g{border-radius:999px;border:2px solid var(--border);font-weight:700;background:#fff;color:var(--text2)}
+.btn-g:hover{border-color:var(--accent);color:var(--accent);background:var(--accent-light);transform:translateY(-1px)}
+.ib{border-radius:12px;border:2px solid var(--border);background:#fff;font-weight:700;box-shadow:0 1px 4px rgba(192,132,252,.08)}
+.ib:hover{border-color:var(--accent);color:var(--accent);background:var(--accent-light);transform:scale(1.1)}
+.sm-btn{border-radius:999px;border:2px solid var(--border);font-weight:700;background:#fff;padding:4px 12px}
+.sm-btn:hover{border-color:var(--accent);color:var(--accent);background:var(--accent-light)}
+.sm-btn.danger{border-color:rgba(244,114,182,.4);color:var(--pink)}
+
+/* ── Lock screen ── */
+.lock-wrap{background:linear-gradient(135deg,#fceeff 0%,#fff5fd 50%,#eef0ff 100%)}
+.lock-card{
+  border-radius:28px;border:2px solid var(--border);
+  background:#fff;box-shadow:0 8px 40px rgba(192,132,252,.2);
+  padding:2.4rem 2rem;
+}
+.lock-title{
+  font-size:30px;font-weight:900;
+  background:linear-gradient(135deg,var(--accent),var(--accent2));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+  background-clip:text;
+}
+
+/* ── Modal ── */
+.modal-box{
+  border-radius:28px;border:2px solid var(--border);background:#fff;
+  box-shadow:0 20px 60px rgba(192,132,252,.25);
+}
+.modal-ov{background:rgba(192,132,252,.25);backdrop-filter:blur(6px)}
+.mhead{border-bottom:2px solid var(--border);padding-bottom:14px;margin-bottom:18px}
+.mtitle{
+  font-weight:900;font-size:19px;
+  background:linear-gradient(135deg,var(--accent),var(--accent2));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+  background-clip:text;
+}
+
+/* ── Calendar ── */
+.cal-wrap{border:2px solid var(--border);border-radius:20px;overflow:hidden;box-shadow:0 4px 20px rgba(192,132,252,.1)}
+.cal-nav{background:linear-gradient(135deg,#fceeff,#fff0fa);border-bottom:2px solid var(--border)}
+.cal-title{font-weight:800;font-size:16px;color:var(--text)}
+.cal-num.today-n{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;font-weight:900}
+.cal-cell:hover{background:rgba(192,132,252,.06)}
+.cal-cell.sel{background:rgba(192,132,252,.12)}
+.cal-ep{background:linear-gradient(135deg,rgba(192,132,252,.2),rgba(244,114,182,.15));color:var(--accent);border-radius:6px;font-weight:800}
+
+/* ── Project cards ── */
+.pcard{border:2px solid var(--border);border-radius:18px;box-shadow:0 3px 14px rgba(192,132,252,.1)}
+.pcard:hover{box-shadow:0 6px 24px rgba(192,132,252,.18)}
+.pname{font-weight:800;font-size:15px;color:var(--text)}
+.pdesc{font-weight:600;color:var(--text3)}
+.pbar-wrap{border-radius:999px;height:8px;background:var(--border)}
+.pbar-fill{border-radius:999px;background:linear-gradient(90deg,var(--accent),var(--accent2))}
+.ptasks-panel{background:linear-gradient(135deg,#faf5ff,#fff0fa);border-top:2px solid var(--border)}
+.pt-row{border:2px solid var(--border);border-radius:12px;background:#fff}
+
+/* ── Settings ── */
+.ss{background:transparent}
+.st{font-weight:900;font-size:15px;color:var(--text);border-bottom:2px solid var(--border);padding-bottom:8px;margin-bottom:14px}
+.sch-btn{border-radius:16px;border:2px solid var(--border);font-weight:700;background:#fff;padding:10px 16px;transition:all .2s}
+.sch-btn:hover{transform:translateY(-2px);box-shadow:0 4px 14px rgba(192,132,252,.2)}
+
+/* ── Location cards ── */
+.lcard{border:2px solid var(--border);border-radius:16px;background:#fff;box-shadow:0 2px 10px rgba(192,132,252,.08)}
+.lcard:hover{border-color:var(--accent);box-shadow:0 6px 20px rgba(192,132,252,.18);transform:translateY(-2px)}
+
+/* ── Trip ── */
+.trip-list-card{border:2px solid var(--border);border-radius:18px;overflow:hidden}
+.trip-list-head{background:linear-gradient(135deg,#fceeff,#fff0fa);border-bottom:2px solid var(--border);font-weight:800}
+.trip-item:hover{background:var(--accent-light)}
+.trip-item.active{background:linear-gradient(135deg,rgba(192,132,252,.15),rgba(244,114,182,.1));border-right:3px solid var(--accent)}
+.trip-timeline{border:2px solid var(--border);border-radius:18px}
+.trip-timeline-head{background:linear-gradient(135deg,#fceeff,#fff0fa);font-weight:800}
+.trip-stop-dot{border:2.5px solid var(--accent);background:#fff}
+.trip-stop-dot.first,.trip-stop-dot.last{background:linear-gradient(135deg,var(--accent),var(--accent2))}
+.trip-stop-line.travel{background:linear-gradient(var(--accent),var(--accent2));opacity:.6}
+.trip-stop-name{font-weight:700}
+.trip-add-stop{border:2px dashed var(--border);border-radius:12px;font-weight:700}
+.trip-add-stop:hover{border-color:var(--accent);background:var(--accent-light);color:var(--accent)}
+.trip-travel-badge{border:2px solid var(--border);font-weight:700;background:#fff}
+
+/* ── People ── */
+.pv-col{border:2px solid var(--border);border-radius:18px}
+.pv-col-head{background:linear-gradient(135deg,#fceeff,#fff0fa);border-bottom:2px solid var(--border)}
+.pv-mini{background:linear-gradient(135deg,#faf5ff,#fff);border:2px solid var(--border);border-radius:14px}
+.pv-mini-name{font-weight:800;color:var(--text)}
+.pv-type-btn{border:2px solid var(--border);border-radius:999px;font-weight:700;background:#fff}
+.pv-type-btn.active{border-color:var(--accent);background:var(--accent-light);color:var(--accent)}
+
+/* ── Gantt ── */
+.gantt-outer{border:2px solid var(--border);border-radius:18px;overflow:hidden}
+.gantt-label-cell{background:#fff}
+.gantt-bar{border-radius:10px;box-shadow:0 2px 8px rgba(0,0,0,.08)}
+.gantt-hdr-cell,.gantt-label-hdr{background:linear-gradient(135deg,#fceeff,#fff0fa);color:var(--text2);font-weight:800}
+.gantt-label-name{font-weight:700;color:var(--text)}
+
+/* ── Day view ── */
+.day-view-hdr{background:linear-gradient(135deg,#fceeff,#fff0fa);border-bottom:2px solid var(--border)}
+.day-view-date{font-weight:900;color:var(--text)}
+.day-view-allday{background:#fff;border-bottom:2px solid var(--border)}
+.day-item{border-radius:12px;font-weight:600}
+.day-now-line{background:linear-gradient(90deg,var(--accent),var(--accent2))}
+.day-now-line::before{background:var(--accent)}
+
+/* ── Tabs ── */
+#tab-bar{background:#fff;border-bottom:2px solid var(--border)}
+.tab-btn{font-weight:700}
+.tab-btn.active{color:var(--accent);border-bottom-color:var(--accent)}
+.fbtn{border-radius:999px;border:2px solid var(--border);font-weight:700;background:#fff;color:var(--text2)}
+.fbtn.active{border-color:var(--accent);background:var(--accent-light);color:var(--accent)}
+
+/* ── Chips ── */
+.att-chip{border:2px solid var(--border);border-radius:999px;font-weight:700;background:#fff}
+.att-chip.sel{border-color:var(--accent);background:var(--accent-light);color:var(--accent)}
+.av-chip{border:2px solid var(--border);border-radius:999px;font-weight:700;background:#fff}
+.av-chip.active{border-color:var(--accent);background:var(--accent-light);color:var(--accent)}
+
+/* ── Total bar ── */
+.total-bar{background:linear-gradient(135deg,#fceeff,#fff0fa);border:2px solid var(--border);border-radius:14px;font-weight:700;color:var(--text2)}
+
+/* ── Cat chips ── */
+.cc{background:linear-gradient(135deg,rgba(192,132,252,.15),rgba(244,114,182,.1));border:1.5px solid rgba(192,132,252,.35);color:var(--accent);border-radius:999px;font-weight:800}
+
+/* ── Group chips ── */
+.group-chip{border:2px solid var(--border);background:#fff;border-radius:999px;font-weight:700}
+.group-chip:hover{border-color:var(--accent);color:var(--accent)}
+.group-suggestion:hover{background:var(--accent-light)}
+
+/* ── Scrollbar ── */
+*{scrollbar-width:thin;scrollbar-color:var(--border) transparent}
+
+/* ── Empty states ── */
+.empty-s{
+  font-weight:800;font-size:14px;color:var(--text3);
+  background:linear-gradient(135deg,#faf5ff,#fff0fa);
+  border:2px dashed var(--border);border-radius:20px;
+  padding:36px 20px;
+}
+
+/* ── Toast ── */
+#toast{
+  background:linear-gradient(135deg,var(--accent),var(--accent2));
+  border-radius:999px;font-weight:800;font-size:13px;
+  box-shadow:0 6px 24px rgba(192,132,252,.5);
+  padding:10px 24px;
+}
+
+/* ── Year view ── */
+.yr-month{border:2px solid var(--border);border-radius:16px;background:#fff}
+.yr-month-head{background:linear-gradient(135deg,#fceeff,#fff0fa);font-weight:800;border-bottom:2px solid var(--border)}
+.yr-day.yr-today{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;border-radius:50%;font-weight:900}
+
+/* ── Section-specific accent borders ── */
+#panel-tasks .irow{border-left-color:#c084fc}
+#panel-purchases .irow{border-left-color:#f472b6}
+#panel-reminders .irow{border-left-color:#fb923c}
+#panel-events .irow{border-left-color:#fbbf24}
+#panel-activities .irow{border-left-color:#60d8c4}
+#panel-projects .pcard{border-left:4px solid #60a5fa}
+#panel-locations .lcard{border-left:4px solid #5eb87a}
+
+/* ── Decorative blobs (section pages) ── */
+.tab-panel:not(.home-view)::after{
+  content:'';position:fixed;top:0;right:0;width:300px;height:300px;
+  background:radial-gradient(circle at top right,rgba(192,132,252,.07),transparent 70%);
+  pointer-events:none;z-index:0;
+}
+
+/* ── map backgrounds ── */
+#loc-map-wrap,#trip-map-wrap{border:2px solid var(--border);border-radius:18px}
+.map-zoom button{background:#fff;border:2px solid var(--border);border-radius:10px;font-weight:700}
+.trip-zoom button{background:#fff;border:2px solid var(--border);border-radius:10px;font-weight:700}
+.map-popup{background:#fff;border:2px solid var(--border);border-radius:16px;box-shadow:0 8px 28px rgba(192,132,252,.2)}
+
+/* ── Gantt tooltip ── */
+.gantt-tooltip{background:#fff;border:2px solid var(--border);border-radius:14px;font-weight:600;box-shadow:0 6px 20px rgba(192,132,252,.2)}
+
+
+/* Per-section cute backgrounds */
+#panel-tasks{background:linear-gradient(180deg,#fdf4ff 0%,#faf0ff 100%)}
+#panel-purchases{background:linear-gradient(180deg,#fff0f8 0%,#fdf4ff 100%)}
+#panel-reminders{background:linear-gradient(180deg,#fff8f0 0%,#fff4f8 100%)}
+#panel-events{background:linear-gradient(180deg,#fffbf0 0%,#fff8f4 100%)}
+#panel-activities{background:linear-gradient(180deg,#f0fff8 0%,#f0faff 100%)}
+#panel-projects{background:linear-gradient(180deg,#f0f4ff 0%,#f4f0ff 100%)}
+#panel-people{background:linear-gradient(180deg,#fdf4ff 0%,#fff0f8 100%)}
+#panel-gantt{background:linear-gradient(180deg,#f0f4ff 0%,#fdf4ff 100%)}
+#panel-trips{background:linear-gradient(180deg,#f0fff4 0%,#f0f8ff 100%)}
+#panel-locations{background:linear-gradient(180deg,#f0fff4 0%,#f4fff0 100%)}
+#panel-settings{background:linear-gradient(180deg,#fdf4ff 0%,#fff4fd 100%)}
+
+
+@keyframes wiggle{0%,100%{transform:rotate(0deg)}25%{transform:rotate(-8deg)}75%{transform:rotate(8deg)}}
+.ichk:checked{animation:wiggle .3s ease}
+input[type=checkbox]:checked{animation:wiggle .3s ease}
+@keyframes pop{0%{transform:scale(1)}50%{transform:scale(1.15)}100%{transform:scale(1)}}
+.btn-p:active{animation:pop .2s ease}
+
+
+/* ══════════════════════════════
+   BUBBLES + NO BLACK LINES
+══════════════════════════════ */
+
+/* Kill ALL dark lines — make everything soft */
+*{border-color:var(--border)!important}
+hr{border-color:var(--border)!important;opacity:.5}
+
+/* Gantt lines → ghost soft */
+.gantt-hdr-cell{border-right-color:rgba(192,132,252,.2)!important;border-bottom-color:rgba(192,132,252,.25)!important;background:linear-gradient(135deg,#fceeff,#fff0fa)!important}
+.gantt-label-hdr{border-right-color:rgba(192,132,252,.3)!important;border-bottom-color:rgba(192,132,252,.25)!important;background:linear-gradient(135deg,#fceeff,#fff0fa)!important}
+.gantt-label-cell{border-right-color:rgba(192,132,252,.2)!important;background:#fff!important}
+.gantt-bar-cell{border-right-color:rgba(192,132,252,.12)!important}
+.gantt-row{border-bottom-color:rgba(192,132,252,.12)!important}
+.gantt-section-row td{border-bottom-color:rgba(192,132,252,.15)!important;background:linear-gradient(135deg,#faf0ff,#fff5fd)!important}
+.gantt-today-line{background:linear-gradient(180deg,var(--accent),var(--accent2))!important;opacity:.5;width:2px}
+.gantt-outer{border-color:rgba(192,132,252,.25)!important}
+
+/* Calendar grid → barely-there */
+.cal-cell{border-right-color:rgba(192,132,252,.12)!important;border-bottom-color:rgba(192,132,252,.12)!important}
+.cal-dnames{border-bottom-color:rgba(192,132,252,.2)!important}
+.cal-wrap{border-color:rgba(192,132,252,.3)!important}
+
+/* Day view → dreamy */
+.day-hour-row{border-bottom-color:rgba(192,132,252,.1)!important}
+.day-time-gutter{border-right-color:rgba(192,132,252,.2)!important}
+.day-view-hdr,.day-view-allday{border-bottom-color:rgba(192,132,252,.2)!important}
+
+/* Trip timeline dots/lines */
+.trip-stop-line{background:rgba(192,132,252,.2)!important}
+.trip-item{border-bottom-color:rgba(192,132,252,.12)!important}
+
+/* Map backgrounds → soft */
+#loc-map-wrap{background:linear-gradient(135deg,#eef4ff,#f4eeff)!important;border-color:rgba(192,132,252,.25)!important}
+#trip-map-wrap{background:linear-gradient(135deg,#eef4ff,#f4eeff)!important;border-color:rgba(192,132,252,.25)!important}
+
+/* Section borders → feather-light */
+.pcard{border-color:rgba(192,132,252,.25)!important}
+.lcard{border-color:rgba(192,132,252,.2)!important}
+.irow{border-color:rgba(192,132,252,.22)!important}
+.irow:hover{border-color:rgba(192,132,252,.55)!important}
+.add-card{border-color:rgba(192,132,252,.22)!important}
+.dw{border-color:rgba(192,132,252,.2)!important}
+.dw:hover{border-color:rgba(192,132,252,.5)!important}
+.dw-head{border-bottom-color:rgba(192,132,252,.18)!important}
+.dw-add{border-top-color:rgba(192,132,252,.18)!important}
+.modal-box{border-color:rgba(192,132,252,.3)!important}
+.lock-card{border-color:rgba(192,132,252,.3)!important}
+#app-header{border-bottom-color:rgba(192,132,252,.25)!important}
+#section-header.visible{border-bottom-color:rgba(192,132,252,.25)!important}
+#home-icon-strip{border-bottom-color:rgba(192,132,252,.2)!important}
+.home-tile{border-color:rgba(192,132,252,.2)!important}
+.home-tile:hover{border-color:rgba(192,132,252,.55)!important}
+.trip-list-card,.trip-timeline{border-color:rgba(192,132,252,.22)!important}
+.trip-list-head,.trip-timeline-head{border-bottom-color:rgba(192,132,252,.18)!important}
+.yr-month{border-color:rgba(192,132,252,.2)!important}
+.yr-month-head{border-bottom-color:rgba(192,132,252,.18)!important}
+.pv-col{border-color:rgba(192,132,252,.22)!important}
+.pv-col-head{border-bottom-color:rgba(192,132,252,.18)!important}
+.pv-mini{border-color:rgba(192,132,252,.18)!important}
+.mhead{border-bottom-color:rgba(192,132,252,.2)!important}
+.pt-row{border-color:rgba(192,132,252,.2)!important}
+input,select{border-color:rgba(192,132,252,.35)!important}
+input:focus,select:focus{border-color:var(--accent)!important}
+.btn-g{border-color:rgba(192,132,252,.35)!important}
+.ib{border-color:rgba(192,132,252,.3)!important}
+.sm-btn{border-color:rgba(192,132,252,.3)!important}
+.fbtn{border-color:rgba(192,132,252,.3)!important}
+.tab-btn.active{border-bottom-color:var(--accent)!important}
+.att-chip{border-color:rgba(192,132,252,.3)!important}
+.av-chip{border-color:rgba(192,132,252,.3)!important}
+.cc{border-color:rgba(192,132,252,.3)!important}
+.tag{border-color:rgba(192,132,252,.3)!important}
+.group-chip{border-color:rgba(192,132,252,.3)!important}
+.pbar-wrap{background:rgba(192,132,252,.12)!important}
+.ptasks-panel{border-top-color:rgba(192,132,252,.2)!important}
+.total-bar{border-color:rgba(192,132,252,.22)!important}
+.sch-btn{border-color:rgba(192,132,252,.3)!important}
+.map-popup{border-color:rgba(192,132,252,.25)!important}
+.gantt-tooltip{border-color:rgba(192,132,252,.25)!important}
+.cal-nav{border-bottom-color:rgba(192,132,252,.2)!important}
+.group-suggestion{border-bottom-color:rgba(192,132,252,.12)!important}
+#filter-bar{border-bottom-color:rgba(192,132,252,.18)!important}
+#tab-bar{border-bottom-color:rgba(192,132,252,.2)!important}
+.loc-view-toggle .lvt-btn{border-color:rgba(192,132,252,.3)!important}
+.trip-add-stop{border-color:rgba(192,132,252,.3)!important}
+.trip-travel-badge{border-color:rgba(192,132,252,.25)!important}
+.trip-sel{border-color:rgba(192,132,252,.3)!important}
+.trip-edit-form{border-color:rgba(192,132,252,.2)!important}
+.trip-stop-dot{border-color:var(--accent)!important}
+.map-zoom button,.trip-zoom button{border-color:rgba(192,132,252,.3)!important}
+.dw-input{border-color:rgba(192,132,252,.3)!important}
+#back-btn{border-color:rgba(192,132,252,.3)!important}
+.empty-s{border-color:rgba(192,132,252,.25)!important}
+.st{border-bottom-color:rgba(192,132,252,.22)!important}
+
+/* ══════════════════════════════
+   FLOATING KAWAII BUBBLES
+══════════════════════════════ */
+
+/* Global floating shapes layer */
+body::before{
+  content:'';position:fixed;inset:0;pointer-events:none;z-index:0;overflow:hidden;
+  background:
+    radial-gradient(circle at 8% 15%,rgba(244,114,182,.12) 0%,transparent 18%),
+    radial-gradient(circle at 92% 10%,rgba(192,132,252,.1) 0%,transparent 16%),
+    radial-gradient(circle at 5% 80%,rgba(96,216,196,.09) 0%,transparent 20%),
+    radial-gradient(circle at 95% 75%,rgba(251,191,36,.08) 0%,transparent 18%),
+    radial-gradient(circle at 50% 50%,rgba(192,132,252,.04) 0%,transparent 50%),
+    radial-gradient(circle at 30% 90%,rgba(244,114,182,.07) 0%,transparent 15%),
+    radial-gradient(circle at 70% 85%,rgba(96,165,250,.07) 0%,transparent 15%);
+}
+
+/* Animated bubble elements injected into home panel */
+.kawaii-bubble{
+  position:absolute;border-radius:50%;pointer-events:none;
+  animation:float-bubble linear infinite;opacity:.55;
+}
+@keyframes float-bubble{
+  0%{transform:translateY(0) scale(1) rotate(0deg);opacity:.55}
+  33%{transform:translateY(-18px) scale(1.04) rotate(60deg);opacity:.45}
+  66%{transform:translateY(-8px) scale(.97) rotate(120deg);opacity:.6}
+  100%{transform:translateY(0) scale(1) rotate(180deg);opacity:.55}
+}
+
+/* Static decorative blobs on dashboard */
+#home-panel{position:relative;overflow:hidden}
+#home-panel::before{
+  content:'';position:absolute;
+  width:260px;height:260px;border-radius:50%;
+  background:radial-gradient(circle,rgba(244,114,182,.15),rgba(192,132,252,.08),transparent 70%);
+  top:-60px;right:-60px;pointer-events:none;z-index:0;
+  animation:blob-drift 10s ease-in-out infinite;
+}
+#home-panel::after{
+  content:'';position:absolute;
+  width:200px;height:200px;border-radius:50%;
+  background:radial-gradient(circle,rgba(96,216,196,.12),rgba(96,165,250,.08),transparent 70%);
+  bottom:-40px;left:-40px;pointer-events:none;z-index:0;
+  animation:blob-drift 14s ease-in-out infinite reverse;
+}
+@keyframes blob-drift{
+  0%,100%{transform:scale(1) translate(0,0)}
+  33%{transform:scale(1.08) translate(12px,-8px)}
+  66%{transform:scale(.95) translate(-8px,10px)}
+}
+
+/* Blobs on section panels */
+.tab-panel:not(.home-view){position:relative}
+.tab-panel:not(.home-view)::before{
+  content:'';position:fixed;width:350px;height:350px;border-radius:50%;
+  background:radial-gradient(circle,rgba(192,132,252,.07),transparent 70%);
+  top:-100px;right:-80px;pointer-events:none;z-index:0;
+  animation:blob-drift 12s ease-in-out infinite;
+}
+
+/* Floating shapes in app header */
+#app-header{overflow:hidden;position:relative}
+#app-header::after{
+  content:'';position:absolute;
+  width:180px;height:180px;border-radius:50%;
+  background:radial-gradient(circle,rgba(244,114,182,.15),transparent 70%);
+  top:-80px;left:30%;pointer-events:none;
+  animation:blob-drift 8s ease-in-out infinite;
+}
+
+/* Bubble shapes inside dashboard widget headers */
+.dw-head{position:relative;overflow:hidden}
+.dw-head::after{
+  content:'';position:absolute;
+  width:60px;height:60px;border-radius:50%;
+  background:radial-gradient(circle,rgba(192,132,252,.12),transparent 70%);
+  top:-20px;right:-10px;pointer-events:none;
+}
+
+/* Bubble in lock card */
+.lock-card{position:relative;overflow:hidden}
+.lock-card::before{
+  content:'';position:absolute;
+  width:160px;height:160px;border-radius:50%;
+  background:radial-gradient(circle,rgba(244,114,182,.12),transparent 70%);
+  top:-50px;right:-30px;pointer-events:none;
+}
+.lock-card::after{
+  content:'';position:absolute;
+  width:120px;height:120px;border-radius:50%;
+  background:radial-gradient(circle,rgba(192,132,252,.1),transparent 70%);
+  bottom:-30px;left:-20px;pointer-events:none;
+}
+
+/* Bubbly shimmer on add-cards */
+.add-card{position:relative;overflow:hidden}
+.add-card::after{
+  content:'';position:absolute;
+  width:140px;height:140px;border-radius:50%;
+  background:radial-gradient(circle,rgba(244,114,182,.1),rgba(192,132,252,.06),transparent 70%);
+  bottom:-40px;right:-20px;pointer-events:none;
+  animation:blob-drift 9s ease-in-out infinite reverse;
+}
+
+/* Cute floating emoji bubbles via JS-injected spans */
+.floaty{
+  position:fixed;pointer-events:none;z-index:9998;font-size:16px;
+  animation:floaty-up 3s ease-out forwards;
+}
+@keyframes floaty-up{
+  0%{opacity:1;transform:translateY(0) scale(1)}
+  100%{opacity:0;transform:translateY(-120px) scale(.6)}
+}
+
 </style>
 </head>
 <body>
@@ -301,14 +1103,14 @@ select option{background:var(--card)}
 <div id="setupScreen" class="screen">
   <div class="lock-wrap">
     <div class="lock-card">
-      <div class="lock-icon">✦</div>
+      <div class="lock-icon">🌸</div>
       <div class="lock-title">Group Planner</div>
-      <div class="lock-sub">Create a new group — each group has its own private data</div>
+      <div class="lock-sub">✨ Create your group and start planning together~</div>
       <div class="field"><label>Group name</label><input id="setupGroup" placeholder="e.g. Smith Family, Team Rocket…" onkeydown="if(event.key==='Enter')document.getElementById('setupPwd').focus()"/></div>
-      <div class="field"><label>Password</label><input type="password" id="setupPwd" placeholder="Min 4 characters" onkeydown="if(event.key==='Enter')document.getElementById('setupPwd2').focus()"/></div>
-      <div class="field"><label>Confirm password</label><input type="password" id="setupPwd2" placeholder="Repeat password" onkeydown="if(event.key==='Enter')setupPassword()"/></div>
+      <div class="field"><label>Password</label><input type="password" id="setupPwd" placeholder="Shh, secret~ 🤫" onkeydown="if(event.key==='Enter')document.getElementById('setupPwd2').focus()"/></div>
+      <div class="field"><label>Confirm password</label><input type="password" id="setupPwd2" placeholder="One more time~ 💕" onkeydown="if(event.key==='Enter')setupPassword()"/></div>
       <div class="err-m" id="setupErr"></div>
-      <button class="btn btn-p" onclick="setupPassword()">Create group &amp; continue</button>
+      <button class="btn btn-p" onclick="setupPassword()">🌸 Create group~</button>
       <div style="text-align:center;margin-top:4px"><button class="btn btn-g" style="font-size:12px;width:100%" onclick="showScr('loginScreen')">← Sign in to existing group</button></div>
     </div>
   </div>
@@ -317,9 +1119,9 @@ select option{background:var(--card)}
 <div id="loginScreen" class="screen">
   <div class="lock-wrap">
     <div class="lock-card">
-      <div class="lock-icon">✦</div>
+      <div class="lock-icon">🌸</div>
       <div class="lock-title">Group Planner</div>
-      <div class="lock-sub" id="login-sub">Sign in — your data syncs across all devices</div>
+      <div class="lock-sub" id="login-sub">💫 Welcome back~ your data syncs everywhere</div>
       <div id="group-switcher" style="display:none;margin-bottom:4px"></div>
       <div class="field"><label>Group name</label>
         <div style="position:relative">
@@ -327,9 +1129,9 @@ select option{background:var(--card)}
           <div id="group-suggestions" style="position:absolute;top:100%;left:0;right:0;background:var(--card);border:1px solid var(--border);border-radius:0 0 8px 8px;z-index:20;display:none;max-height:160px;overflow-y:auto"></div>
         </div>
       </div>
-      <div class="field"><label>Password</label><input type="password" id="loginPwd" placeholder="Your password" onkeydown="if(event.key==='Enter')login()"/></div>
+      <div class="field"><label>Password</label><input type="password" id="loginPwd" placeholder="Enter password~ 🔑" onkeydown="if(event.key==='Enter')login()"/></div>
       <div class="err-m" id="loginErr"></div>
-      <button class="btn btn-p" onclick="login()">Sign in</button>
+      <button class="btn btn-p" onclick="login()">✨ Sign in~</button>
       <div style="text-align:center;margin-top:4px"><button class="btn btn-g" style="font-size:12px;width:100%" onclick="showScr('setupScreen')">+ Create a new group</button></div>
     </div>
   </div>
@@ -337,11 +1139,16 @@ select option{background:var(--card)}
 
 <div id="appScreen" class="screen">
   <div id="app-header">
-    <div><div class="hdr-title">✦ <span id="hdr-group-name">Group Planner</span></div><div class="hdr-sub" id="hdr-sub">Loading…</div></div>
+    <div><div class="hdr-title">🌸 <span id="hdr-group-name">Group Planner</span></div><div class="hdr-sub" id="hdr-sub">Loading…</div></div>
     <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
       <div class="av-row" id="av-row"></div>
       <button class="btn btn-g" style="font-size:12px" onclick="lockApp()">🔒 Lock</button>
     </div>
+  </div>
+  <div id="section-header">
+    <button id="back-btn" onclick="goHome()">🏠 Home</button>
+    <div id="section-title">Section</div>
+    <div id="section-actions"></div>
   </div>
   <div id="tab-bar">
     <button class="tab-btn active" data-tab="tasks" onclick="setTab('tasks')">☑ To-Do</button>
@@ -359,9 +1166,172 @@ select option{background:var(--card)}
   <div id="filter-bar" style="display:none"></div>
   <div id="main-content">
 
+    <!-- ── DASHBOARD ── -->
+    <div id="home-panel" class="tab-panel home-view active">
+      <div class="dash-header">
+        <div>
+          <div class="dash-greeting" id="home-greeting">Good day ✦</div>
+          <div class="dash-sub" id="dash-sub">Loading…</div>
+        </div>
+        <div class="dash-nav-pills" id="dash-nav-pills"></div>
+      </div>
+      <!-- quick nav icon strip -->
+      <div class="home-grid" id="home-icon-strip">
+        <div class="home-tile" onclick="goSection('tasks')">
+          <div class="tile-art" style="background:linear-gradient(135deg,#3d2560,#5a3080)">
+            <svg width="36" height="36" viewBox="0 0 36 36"><rect x="6" y="8" width="24" height="21" rx="3" fill="#9b59f7" opacity=".25"/><rect x="6" y="8" width="24" height="21" rx="3" stroke="#9b59f7" stroke-width="1.4" fill="none"/><line x1="11" y1="14" x2="25" y2="14" stroke="#9b59f7" stroke-width="1.3" stroke-linecap="round"/><line x1="11" y1="18.5" x2="22" y2="18.5" stroke="#9b59f7" stroke-width="1.3" stroke-linecap="round"/><line x1="11" y1="23" x2="24" y2="23" stroke="#9b59f7" stroke-width="1.3" stroke-linecap="round"/><circle cx="8.5" cy="14" r="1.5" fill="#9b59f7"/><circle cx="8.5" cy="18.5" r="1.5" fill="#9b59f7"/><circle cx="8.5" cy="23" r="1.5" fill="#9b59f7"/><polyline points="26,9 28,12 32,7" stroke="#5eea8d" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>
+          </div>
+          <div class="tile-info"><div class="tile-name">To-Do</div><div class="tile-count" id="hg-tasks">— tasks</div></div>
+        </div>
+        <div class="home-tile" onclick="goSection('events')">
+          <div class="tile-art" style="background:linear-gradient(135deg,#2a1a08,#4d3010)">
+            <svg width="36" height="36" viewBox="0 0 36 36"><rect x="4" y="9" width="28" height="22" rx="3" fill="#c8882a" opacity=".25"/><rect x="4" y="9" width="28" height="22" rx="3" stroke="#c8882a" stroke-width="1.4" fill="none"/><rect x="4" y="9" width="28" height="8" rx="3" fill="#c8882a" opacity=".4"/><line x1="12" y1="7" x2="12" y2="13" stroke="#c8882a" stroke-width="1.4" stroke-linecap="round"/><line x1="24" y1="7" x2="24" y2="13" stroke="#c8882a" stroke-width="1.4" stroke-linecap="round"/><rect x="8" y="20" width="5" height="5" rx="1.5" fill="#c8882a" opacity=".8"/><rect x="15.5" y="20" width="5" height="5" rx="1.5" fill="#c8882a" opacity=".5"/><rect x="23" y="20" width="5" height="5" rx="1.5" fill="#c8882a" opacity=".3"/></svg>
+          </div>
+          <div class="tile-info"><div class="tile-name">Calendar</div><div class="tile-count" id="hg-events">— events</div></div>
+        </div>
+        <div class="home-tile" onclick="goSection('activities')">
+          <div class="tile-art" style="background:linear-gradient(135deg,#0d1f2d,#1a3a4a)">
+            <svg width="36" height="36" viewBox="0 0 36 36"><circle cx="18" cy="15" r="9" fill="#4db8d4" opacity=".2"/><circle cx="18" cy="15" r="9" stroke="#4db8d4" stroke-width="1.4" fill="none"/><line x1="18" y1="15" x2="18" y2="9" stroke="#4db8d4" stroke-width="1.5" stroke-linecap="round"/><line x1="18" y1="15" x2="22" y2="15" stroke="#4db8d4" stroke-width="1.5" stroke-linecap="round"/><path d="M9 27 Q18 21 27 27" stroke="#4db8d4" stroke-width="1.4" fill="none" stroke-linecap="round"/><circle cx="9" cy="27" r="2" fill="#4db8d4"/><circle cx="18" cy="22.5" r="2" fill="#4db8d4"/><circle cx="27" cy="27" r="2" fill="#4db8d4"/></svg>
+          </div>
+          <div class="tile-info"><div class="tile-name">Activities</div><div class="tile-count" id="hg-activities">— upcoming</div></div>
+        </div>
+        <div class="home-tile" onclick="goSection('locations')">
+          <div class="tile-art" style="background:linear-gradient(135deg,#0f1c14,#1a3020)">
+            <svg width="36" height="36" viewBox="0 0 36 36"><path d="M18 5 C11 5 7 11 7 16 C7 24 18 31 18 31 C18 31 29 24 29 16 C29 11 25 5 18 5Z" fill="#5eb87a" opacity=".25"/><path d="M18 5 C11 5 7 11 7 16 C7 24 18 31 18 31 C18 31 29 24 29 16 C29 11 25 5 18 5Z" stroke="#5eb87a" stroke-width="1.4" fill="none"/><circle cx="18" cy="16" r="4.5" fill="#5eb87a" opacity=".6"/><circle cx="18" cy="16" r="2" fill="white" opacity=".9"/></svg>
+          </div>
+          <div class="tile-info"><div class="tile-name">Locations</div><div class="tile-count" id="hg-locations">— places</div></div>
+        </div>
+        <div class="home-tile wide" onclick="goSection('gantt')">
+          <div class="tile-art" style="background:linear-gradient(135deg,#0d1628,#1a2a4a)">
+            <svg width="48" height="40" viewBox="0 0 48 40"><rect x="2" y="5" width="14" height="6" rx="2" fill="#7c9ef5"/><rect x="2" y="14" width="24" height="6" rx="2" fill="#9b59f7"/><rect x="2" y="23" width="18" height="6" rx="2" fill="#7c9ef5"/><rect x="2" y="32" width="30" height="6" rx="2" fill="#9b59f7" opacity=".6"/><line x1="36" y1="2" x2="36" y2="40" stroke="#ff6b6b" stroke-width="1" stroke-dasharray="2,2"/></svg>
+          </div>
+          <div class="tile-info"><div class="tile-name">Gantt Chart</div><div class="tile-count" id="hg-gantt">Timeline view</div></div>
+        </div>
+        <div class="home-tile wide" onclick="goSection('trips')">
+          <div class="tile-art" style="background:linear-gradient(135deg,#0f1c14,#1a3a20)">
+            <svg width="48" height="40" viewBox="0 0 48 40"><path d="M6 28 Q14 10 24 28 Q34 10 42 28" stroke="#5eb87a" stroke-width="1.5" fill="none" stroke-linecap="round"/><circle cx="6" cy="28" r="3.5" fill="#1D9E75"/><circle cx="24" cy="19" r="3.5" fill="#5eb87a"/><circle cx="42" cy="28" r="3.5" fill="#1D9E75"/><path d="M28 13 L31 9 L37 11 L34 14 Z" fill="#c8882a" opacity=".9"/></svg>
+          </div>
+          <div class="tile-info"><div class="tile-name">Trips</div><div class="tile-count" id="hg-trips">— planned</div></div>
+        </div>
+        <div class="home-tile" onclick="goSection('purchases')">
+          <div class="tile-art" style="background:linear-gradient(135deg,#1c0820,#3a1040)">
+            <svg width="36" height="36" viewBox="0 0 36 36"><path d="M7 9 L12 9 L15 23 L26 23 L29 13 L12 13" stroke="#d07aaa" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" fill="none"/><circle cx="17" cy="27" r="2.5" fill="#d07aaa"/><circle cx="24" cy="27" r="2.5" fill="#d07aaa"/><path d="M15 13 L16 19 L25 19 L27 13" fill="#d07aaa" opacity=".3"/></svg>
+          </div>
+          <div class="tile-info"><div class="tile-name">Shopping</div><div class="tile-count" id="hg-purchases">— items</div></div>
+        </div>
+        <div class="home-tile" onclick="goSection('reminders')">
+          <div class="tile-art" style="background:linear-gradient(135deg,#1c1208,#332010)">
+            <svg width="36" height="36" viewBox="0 0 36 36"><path d="M18 6 C12 6 8 10 8 16 L8 22 L6 24 L6 26 L30 26 L30 24 L28 22 L28 16 C28 10 24 6 18 6Z" fill="#c8882a" opacity=".25"/><path d="M18 6 C12 6 8 10 8 16 L8 22 L6 24 L6 26 L30 26 L30 24 L28 22 L28 16 C28 10 24 6 18 6Z" stroke="#c8882a" stroke-width="1.4" fill="none"/><line x1="15" y1="26" x2="21" y2="26" stroke="#c8882a" stroke-width="2" stroke-linecap="round"/><path d="M18 26 L18 29" stroke="#c8882a" stroke-width="1.5" stroke-linecap="round"/><circle cx="18" cy="6" r="2" fill="#c8882a"/></svg>
+          </div>
+          <div class="tile-info"><div class="tile-name">Reminders</div><div class="tile-count" id="hg-reminders">— active</div></div>
+        </div>
+        <div class="home-tile" onclick="goSection('projects')">
+          <div class="tile-art" style="background:linear-gradient(135deg,#1a1a1a,#2a2a2a)">
+            <svg width="36" height="36" viewBox="0 0 36 36"><rect x="6" y="7" width="24" height="7" rx="3.5" fill="#888" opacity=".5"/><rect x="6" y="7" width="24" height="7" rx="3.5" stroke="#888" stroke-width="1.2" fill="none"/><rect x="6" y="16" width="18" height="7" rx="3.5" fill="#888" opacity=".5"/><rect x="6" y="16" width="18" height="7" rx="3.5" stroke="#888" stroke-width="1.2" fill="none"/><rect x="6" y="25" width="22" height="7" rx="3.5" fill="#999" opacity=".4"/><rect x="6" y="25" width="22" height="7" rx="3.5" stroke="#888" stroke-width="1.2" fill="none"/></svg>
+          </div>
+          <div class="tile-info"><div class="tile-name">Projects</div><div class="tile-count" id="hg-projects">— active</div></div>
+        </div>
+        <div class="home-tile" onclick="goSection('people')">
+          <div class="tile-art" style="background:linear-gradient(135deg,#1a0f2e,#3d2560)">
+            <svg width="36" height="36" viewBox="0 0 36 36"><circle cx="12" cy="13" r="5" fill="#9b59f7" opacity=".5"/><circle cx="12" cy="13" r="5" stroke="#9b59f7" stroke-width="1.3" fill="none"/><circle cx="24" cy="13" r="5" fill="#9b59f7" opacity=".3"/><circle cx="24" cy="13" r="5" stroke="#9b59f7" stroke-width="1.3" fill="none"/><path d="M3 28 Q3 22 12 22 Q21 22 21 28" stroke="#9b59f7" stroke-width="1.3" fill="none" stroke-linecap="round"/><path d="M21 24 Q21 20 24 20 Q29 20 33 24 Q33 28 33 28" stroke="#9b59f7" stroke-width="1" fill="none" stroke-linecap="round" opacity=".5"/></svg>
+          </div>
+          <div class="tile-info"><div class="tile-name">People</div><div class="tile-count" id="hg-people">— members</div></div>
+        </div>
+        <div class="home-tile" onclick="goSection('settings')">
+          <div class="tile-art" style="background:linear-gradient(135deg,#1a1a2e,#2a2a4e)">
+            <svg width="36" height="36" viewBox="0 0 36 36"><circle cx="18" cy="18" r="5" fill="#7c9ef5" opacity=".4"/><circle cx="18" cy="18" r="5" stroke="#7c9ef5" stroke-width="1.4" fill="none"/><path d="M18 5 L18 8 M18 28 L18 31 M5 18 L8 18 M28 18 L31 18 M9 9 L11 11 M25 25 L27 27 M27 9 L25 11 M11 25 L9 27" stroke="#7c9ef5" stroke-width="1.5" stroke-linecap="round"/></svg>
+          </div>
+          <div class="tile-info"><div class="tile-name">Settings</div><div class="tile-count">Group & theme</div></div>
+        </div>
+      </div>
+      <!-- ── DASHBOARD WIDGETS ── -->
+      <div class="dash-widgets" id="dash-widgets">
+        <!-- Tasks widget -->
+        <div class="dw" id="dw-tasks">
+          <div class="dw-head">
+            <span class="dw-icon">☑</span><span class="dw-title">To-Do</span>
+            <span class="dw-count" id="dw-tasks-count"></span>
+            <button class="dw-more" onclick="goSection('tasks')">See all →</button>
+          </div>
+          <div class="dw-body" id="dw-tasks-body"><div class="dw-empty">No pending tasks</div></div>
+          <div class="dw-add">
+            <input class="dw-input" id="dw-task-input" placeholder="Quick add task…" onkeydown="if(event.key==='Enter')dwAddTask()"/>
+            <button class="dw-add-btn" onclick="dwAddTask()">+</button>
+          </div>
+        </div>
+        <!-- Reminders widget -->
+        <div class="dw" id="dw-reminders">
+          <div class="dw-head">
+            <span class="dw-icon">🔔</span><span class="dw-title">Reminders</span>
+            <span class="dw-count" id="dw-reminders-count"></span>
+            <button class="dw-more" onclick="goSection('reminders')">See all →</button>
+          </div>
+          <div class="dw-body" id="dw-reminders-body"><div class="dw-empty">No active reminders</div></div>
+        </div>
+        <!-- Events widget -->
+        <div class="dw" id="dw-events">
+          <div class="dw-head">
+            <span class="dw-icon">📅</span><span class="dw-title">Upcoming Events</span>
+            <span class="dw-count" id="dw-events-count"></span>
+            <button class="dw-more" onclick="goSection('events')">See all →</button>
+          </div>
+          <div class="dw-body" id="dw-events-body"><div class="dw-empty">No upcoming events</div></div>
+        </div>
+        <!-- Shopping widget -->
+        <div class="dw" id="dw-purchases">
+          <div class="dw-head">
+            <span class="dw-icon">🛒</span><span class="dw-title">Shopping</span>
+            <span class="dw-count" id="dw-purchases-count"></span>
+            <button class="dw-more" onclick="goSection('purchases')">See all →</button>
+          </div>
+          <div class="dw-body" id="dw-purchases-body"><div class="dw-empty">Nothing to buy</div></div>
+          <div class="dw-add">
+            <input class="dw-input" id="dw-purchase-input" placeholder="Quick add item…" onkeydown="if(event.key==='Enter')dwAddPurchase()"/>
+            <button class="dw-add-btn" onclick="dwAddPurchase()">+</button>
+          </div>
+        </div>
+        <!-- Activities widget -->
+        <div class="dw" id="dw-activities">
+          <div class="dw-head">
+            <span class="dw-icon">🎯</span><span class="dw-title">Activities</span>
+            <span class="dw-count" id="dw-activities-count"></span>
+            <button class="dw-more" onclick="goSection('activities')">See all →</button>
+          </div>
+          <div class="dw-body" id="dw-activities-body"><div class="dw-empty">No activities planned</div></div>
+        </div>
+        <!-- Projects widget -->
+        <div class="dw" id="dw-projects">
+          <div class="dw-head">
+            <span class="dw-icon">📋</span><span class="dw-title">Projects</span>
+            <span class="dw-count" id="dw-projects-count"></span>
+            <button class="dw-more" onclick="goSection('projects')">See all →</button>
+          </div>
+          <div class="dw-body" id="dw-projects-body"><div class="dw-empty">No active projects</div></div>
+        </div>
+        <!-- Trips widget -->
+        <div class="dw dw-wide" id="dw-trips">
+          <div class="dw-head">
+            <span class="dw-icon">✈</span><span class="dw-title">Trips</span>
+            <span class="dw-count" id="dw-trips-count"></span>
+            <button class="dw-more" onclick="goSection('trips')">See all →</button>
+          </div>
+          <div class="dw-body dw-body-row" id="dw-trips-body"><div class="dw-empty">No trips planned</div></div>
+        </div>
+        <!-- People widget -->
+        <div class="dw" id="dw-people">
+          <div class="dw-head">
+            <span class="dw-icon">👥</span><span class="dw-title">People</span>
+            <span class="dw-count" id="dw-people-count"></span>
+            <button class="dw-more" onclick="goSection('people')">See all →</button>
+          </div>
+          <div class="dw-body" id="dw-people-body"><div class="dw-empty">No members yet</div></div>
+        </div>
+      </div>
+    </div>
+
     <div id="panel-tasks" class="tab-panel active">
       <div class="add-card">
-        <div class="add-title">Add Task</div>
+        <div class="add-title">💜 New Task</div>
         <div class="fg">
           <div class="field"><label>Task</label><input id="t-name" placeholder="What needs doing?" onkeydown="if(event.key==='Enter')addTask()"/></div>
           <div class="field"><label>Note</label><input id="t-note" placeholder="Optional note"/></div>
@@ -373,14 +1343,14 @@ select option{background:var(--card)}
           <div class="field"><label>Priority</label><select id="t-priority"><option value="low">Low</option><option value="medium" selected>Medium</option><option value="high">High</option></select></div>
           <div class="field"><label>Location</label><input id="t-location" placeholder="Optional location"/></div>
         </div>
-        <button class="btn btn-p" onclick="addTask()">+ Add Task</button>
+        <button class="btn btn-p" onclick="addTask()">✨ Add Task</button>
       </div>
       <div class="ilist" id="tasks-list"></div>
     </div>
 
     <div id="panel-purchases" class="tab-panel">
       <div class="add-card">
-        <div class="add-title">Add Purchase Item</div>
+        <div class="add-title">🛍️ Add to Shopping List</div>
         <div class="fg">
           <div class="field"><label>Item</label><input id="p-name" placeholder="What to buy?" onkeydown="if(event.key==='Enter')addPurchase()"/></div>
           <div class="field"><label>Qty</label><input type="number" id="p-qty" value="1" min="1"/></div>
@@ -393,7 +1363,7 @@ select option{background:var(--card)}
           <div class="field"><label>End time</label><input type="time" id="p-endTime"/></div>
           <div class="field"><label>Link</label><input id="p-link" placeholder="https://..."/></div>
         </div>
-        <button class="btn btn-p" onclick="addPurchase()">+ Add Item</button>
+        <button class="btn btn-p" onclick="addPurchase()">🛍️ Add Item</button>
       </div>
       <div id="purchase-total" class="total-bar" style="display:none"></div>
       <div class="ilist" id="purchases-list"></div>
@@ -401,7 +1371,7 @@ select option{background:var(--card)}
 
     <div id="panel-reminders" class="tab-panel">
       <div class="add-card">
-        <div class="add-title">Add Reminder — Remember to…</div>
+        <div class="add-title">🔔 New Reminder</div>
         <div class="fg">
           <div class="field"><label>Remember to…</label><input id="r-text" placeholder="Remember to pack…" onkeydown="if(event.key==='Enter')addReminder()"/></div>
           <div class="field"><label>Details</label><input id="r-detail" placeholder="Extra info"/></div>
@@ -413,14 +1383,14 @@ select option{background:var(--card)}
           <div class="field"><label>Repeat</label><select id="r-repeat"><option value="none">No repeat</option><option value="daily">Daily</option><option value="weekly">Weekly</option><option value="monthly">Monthly</option></select></div>
           <div class="field"><label>Location</label><input id="r-location" placeholder="Optional location"/></div>
         </div>
-        <button class="btn btn-p" onclick="addReminder()">+ Add Reminder</button>
+        <button class="btn btn-p" onclick="addReminder()">🔔 Add Reminder</button>
       </div>
       <div class="ilist" id="reminders-list"></div>
     </div>
 
     <div id="panel-locations" class="tab-panel">
       <div class="add-card">
-        <div class="add-title">Add Location</div>
+        <div class="add-title">📍 New Location</div>
         <div class="fg">
           <div class="field"><label>Location name</label><input id="l-name" placeholder="e.g. Conference Hall A"/></div>
           <div class="field"><label>Address</label><input id="l-address" placeholder="Full address"/></div>
@@ -429,7 +1399,7 @@ select option{background:var(--card)}
           <div class="field"><label>Person in charge</label><select id="l-assignee"></select></div>
           <div class="field"><label>Maps / URL</label><input id="l-link" placeholder="https://maps.google.com/…"/></div>
         </div>
-        <button class="btn btn-p" onclick="addLocation()">+ Add Location</button>
+        <button class="btn btn-p" onclick="addLocation()">📍 Add Location</button>
       </div>
       <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;flex-wrap:wrap">
         <div class="loc-view-toggle">
@@ -454,7 +1424,7 @@ select option{background:var(--card)}
 
     <div id="panel-events" class="tab-panel">
       <div class="add-card">
-        <div class="add-title">Add Event</div>
+        <div class="add-title">📅 New Event</div>
         <div class="fg">
           <div class="field"><label>Title</label><input id="ev-title" placeholder="Event name"/></div>
           <div class="field"><label>Date</label><input type="date" id="ev-date"/></div>
@@ -469,7 +1439,7 @@ select option{background:var(--card)}
           <div class="section-lbl">Attendees</div>
           <div id="att-chips" class="flex-r"></div>
         </div>
-        <button class="btn btn-p" onclick="addEvent()">+ Add Event</button>
+        <button class="btn btn-p" onclick="addEvent()">📅 Add Event</button>
       </div>
       <div class="cal-wrap" id="cal-wrap">
         <div class="cal-nav">
@@ -555,7 +1525,7 @@ select option{background:var(--card)}
 
     <div id="panel-activities" class="tab-panel">
       <div class="add-card">
-        <div class="add-title">Add Activity</div>
+        <div class="add-title">🎯 New Activity</div>
         <div class="fg">
           <div class="field"><label>Activity name</label><input id="a-name" placeholder="e.g. Morning hike, Team lunch…" onkeydown="if(event.key==='Enter')addActivity()"/></div>
           <div class="field"><label>Date</label><input type="date" id="a-date"/></div>
@@ -568,7 +1538,7 @@ select option{background:var(--card)}
           <div class="field"><label>Cost</label><input type="number" id="a-cost" placeholder="0.00" step="0.01"/></div>
           <div class="field"><label>Status</label><select id="a-status"><option value="planned">📋 Planned</option><option value="confirmed">✅ Confirmed</option><option value="inprogress">🚀 In Progress</option><option value="done">✔ Done</option><option value="cancelled">❌ Cancelled</option></select></div>
         </div>
-        <button class="btn btn-p" onclick="addActivity()">+ Add Activity</button>
+        <button class="btn btn-p" onclick="addActivity()">🎯 Add Activity</button>
       </div>
       <div id="activities-filter-bar" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px"></div>
       <div class="ilist" id="activities-list"></div>
@@ -611,43 +1581,72 @@ select option{background:var(--card)}
 </script>
 <script>
 const SCHEMES={
-  // Midnight — deep slate-blue, softened to avoid eye strain
-  midnight:{name:'Midnight',
-    bg:'#16213e',card:'#1f2d50',surface:'#28395f',border:'#3a4f72',
-    accent:'#7c9ef5',aL:'rgba(124,158,245,0.15)',
-    text:'#dde6f8',t2:'#9db4e0',t3:'#6882a8',
-    hdr:'linear-gradient(135deg,#16213e,#1f2d50,#28395f)',
-    tBg:'rgba(124,158,245,0.12)',tBo:'rgba(124,158,245,0.35)'},
-  // Rose — muted dusty rose instead of hot pink
-  rose:    {name:'Rose',
-    bg:'#221420',card:'#312030',surface:'#3d2a3a',border:'#5a3a52',
-    accent:'#d07aaa',aL:'rgba(208,122,170,0.15)',
-    text:'#f0dcea',t2:'#c9a0ba',t3:'#907080',
-    hdr:'linear-gradient(135deg,#221420,#312030,#3d2a3a)',
-    tBg:'rgba(208,122,170,0.12)',tBo:'rgba(208,122,170,0.35)'},
-  // Ocean — navy with a calm teal accent instead of electric cyan
-  ocean:   {name:'Ocean',
-    bg:'#0d1f2d',card:'#152840',surface:'#1c3352',border:'#284d6e',
-    accent:'#4db8d4',aL:'rgba(77,184,212,0.15)',
-    text:'#d6edf5',t2:'#88bfd0',t3:'#517d8e',
-    hdr:'linear-gradient(135deg,#0d1f2d,#152840,#1c3352)',
-    tBg:'rgba(77,184,212,0.12)',tBo:'rgba(77,184,212,0.35)'},
-  // Forest — rich dark green with a soft sage accent
-  forest:  {name:'Forest',
-    bg:'#0f1c14',card:'#172618',surface:'#1f3222',border:'#2d4a32',
-    accent:'#5eb87a',aL:'rgba(94,184,122,0.15)',
-    text:'#d4edda',t2:'#8dbf9a',t3:'#547a5e',
-    hdr:'linear-gradient(135deg,#0f1c14,#172618,#1f3222)',
-    tBg:'rgba(94,184,122,0.12)',tBo:'rgba(94,184,122,0.35)'},
-  // Ember — warm dark brown with a calm amber instead of harsh orange
-  ember:   {name:'Ember',
-    bg:'#1c1208',card:'#271a0a',surface:'#33220e',border:'#4d3318',
-    accent:'#c8882a',aL:'rgba(200,136,42,0.15)',
-    text:'#f0e2cc',t2:'#c4a06a',t3:'#8a6a3a',
-    hdr:'linear-gradient(135deg,#1c1208,#271a0a,#33220e)',
-    tBg:'rgba(200,136,42,0.12)',tBo:'rgba(200,136,42,0.35)'},
+  // 🌸 Sakura — light mode, pink & lavender
+  midnight:{name:'🌸 Sakura',
+    bg:'#fdf4ff',card:'#ffffff',surface:'#f8eeff',border:'rgba(192,132,252,0.25)',
+    accent:'#c084fc',aL:'rgba(192,132,252,0.18)',
+    text:'#3d1a5c',t2:'#7c4fa0',t3:'#b08cc8',
+    hdr:'linear-gradient(135deg,#fceeff,#fff0fa,#eef4ff)',
+    tBg:'rgba(192,132,252,0.15)',tBo:'rgba(192,132,252,0.4)',
+    blob1:'rgba(244,114,182,0.18)',blob2:'rgba(192,132,252,0.14)',blob3:'rgba(96,216,196,0.1)'},
+  // 🍬 Candy — hot pink & bubblegum
+  rose:{name:'🍬 Candy',
+    bg:'#fff0f8',card:'#ffffff',surface:'#ffe4f5',border:'rgba(244,114,182,0.28)',
+    accent:'#f472b6',aL:'rgba(244,114,182,0.18)',
+    text:'#4a0a2e',t2:'#9a2060',t3:'#d080a8',
+    hdr:'linear-gradient(135deg,#ffe0f5,#fff0fa,#ffeeff)',
+    tBg:'rgba(244,114,182,0.15)',tBo:'rgba(244,114,182,0.45)',
+    blob1:'rgba(244,114,182,0.2)',blob2:'rgba(251,191,36,0.15)',blob3:'rgba(192,132,252,0.12)'},
+  // 🌊 Aqua — electric teal & sky blue
+  ocean:{name:'🌊 Aqua',
+    bg:'#f0fdff',card:'#ffffff',surface:'#e0f8ff',border:'rgba(6,182,212,0.25)',
+    accent:'#06b6d4',aL:'rgba(6,182,212,0.18)',
+    text:'#0a2a3a',t2:'#0e6a88',t3:'#5aaec4',
+    hdr:'linear-gradient(135deg,#e0f8ff,#f0fdff,#e8f4ff)',
+    tBg:'rgba(6,182,212,0.15)',tBo:'rgba(6,182,212,0.4)',
+    blob1:'rgba(6,182,212,0.18)',blob2:'rgba(96,165,250,0.14)',blob3:'rgba(96,216,196,0.12)'},
+  // 🌿 Matcha — vibrant green & lime
+  forest:{name:'🌿 Matcha',
+    bg:'#f0fff4',card:'#ffffff',surface:'#dcffe8',border:'rgba(34,197,94,0.25)',
+    accent:'#22c55e',aL:'rgba(34,197,94,0.18)',
+    text:'#052e16',t2:'#166534',t3:'#4ade80',
+    hdr:'linear-gradient(135deg,#dcffe8,#f0fff4,#f0fdf4)',
+    tBg:'rgba(34,197,94,0.15)',tBo:'rgba(34,197,94,0.4)',
+    blob1:'rgba(34,197,94,0.18)',blob2:'rgba(96,216,196,0.15)',blob3:'rgba(251,191,36,0.1)'},
+  // 🔥 Sunset — orange, coral & gold
+  ember:{name:'🔥 Sunset',
+    bg:'#fffbf0',card:'#ffffff',surface:'#fff3e0',border:'rgba(251,146,60,0.28)',
+    accent:'#f97316',aL:'rgba(251,146,60,0.18)',
+    text:'#3a1500',t2:'#9a3800',t3:'#e08040',
+    hdr:'linear-gradient(135deg,#fff0dc,#fff8f0,#fffbf0)',
+    tBg:'rgba(251,146,60,0.15)',tBo:'rgba(251,146,60,0.45)',
+    blob1:'rgba(251,146,60,0.2)',blob2:'rgba(244,114,182,0.12)',blob3:'rgba(251,191,36,0.18)'},
+  // 💜 Galaxy — deep purple & electric violet
+  galaxy:{name:'💜 Galaxy',
+    bg:'#0d0520',card:'#1a0a38',surface:'#260f50',border:'rgba(168,85,247,0.3)',
+    accent:'#a855f7',aL:'rgba(168,85,247,0.2)',
+    text:'#f3e8ff',t2:'#c084fc',t3:'#7c3aed',
+    hdr:'linear-gradient(135deg,#0d0520,#1a0a38,#260f50)',
+    tBg:'rgba(168,85,247,0.18)',tBo:'rgba(168,85,247,0.45)',
+    blob1:'rgba(168,85,247,0.22)',blob2:'rgba(244,114,182,0.15)',blob3:'rgba(96,165,250,0.12)'},
+  // 🌙 Midnight — deep navy & electric blue
+  night:{name:'🌙 Midnight',
+    bg:'#050d1e',card:'#0d1a35',surface:'#152848',border:'rgba(96,165,250,0.28)',
+    accent:'#60a5fa',aL:'rgba(96,165,250,0.2)',
+    text:'#e0eeff',t2:'#93c5fd',t3:'#3b6fa8',
+    hdr:'linear-gradient(135deg,#050d1e,#0d1a35,#152848)',
+    tBg:'rgba(96,165,250,0.15)',tBo:'rgba(96,165,250,0.4)',
+    blob1:'rgba(96,165,250,0.18)',blob2:'rgba(168,85,247,0.14)',blob3:'rgba(96,216,196,0.1)'},
+  // 🍑 Peach — warm coral & apricot
+  peach:{name:'🍑 Peach',
+    bg:'#fff7f0',card:'#ffffff',surface:'#ffede0',border:'rgba(251,113,133,0.25)',
+    accent:'#fb7185',aL:'rgba(251,113,133,0.18)',
+    text:'#3a0a14',t2:'#9a2040',t3:'#e08090',
+    hdr:'linear-gradient(135deg,#ffe8e0,#fff2ec,#fff7f0)',
+    tBg:'rgba(251,113,133,0.15)',tBo:'rgba(251,113,133,0.4)',
+    blob1:'rgba(251,113,133,0.2)',blob2:'rgba(251,191,36,0.15)',blob3:'rgba(244,114,182,0.12)'},
 };
-const PC=['#7c9ef5','#d07aaa','#4db8d4','#5eb87a','#c8882a','#c4a84a','#a07be0','#4abcb0','#9ab850','#e07878'];
+const PC=['#c084fc','#f472b6','#06b6d4','#22c55e','#f97316','#a855f7','#fb7185','#fbbf24','#60a5fa','#4ade80'];
 const SL={planning:'🗓 Planning',active:'🚀 Active',review:'👁 Review',done:'✅ Done',paused:'⏸ Paused'};
 const SC={planning:'var(--t3)',active:'var(--accent)',review:'#f7c948',done:'#4ade80',paused:'#ff7b2c'};
 
@@ -832,18 +1831,170 @@ function applyScheme(){
   r.setProperty('--border',s.border);r.setProperty('--accent',s.accent);r.setProperty('--accent-light',s.aL);
   r.setProperty('--text',s.text);r.setProperty('--text2',s.t2);r.setProperty('--text3',s.t3);
   r.setProperty('--tag-bg',s.tBg);r.setProperty('--tag-border',s.tBo);r.setProperty('--hdr',s.hdr);
+  const b1=s.blob1||'rgba(244,114,182,.12)',b2=s.blob2||'rgba(192,132,252,.1)',b3=s.blob3||'rgba(96,216,196,.09)';
+  document.body.style.backgroundImage=`radial-gradient(circle at 8% 15%,${b1} 0%,transparent 22%),radial-gradient(circle at 92% 10%,${b2} 0%,transparent 18%),radial-gradient(circle at 5% 80%,${b3} 0%,transparent 22%),radial-gradient(circle at 95% 75%,${b1} 0%,transparent 20%),radial-gradient(circle at 50% 50%,${b2} 0%,transparent 55%),radial-gradient(circle at 30% 90%,${b3} 0%,transparent 18%)`;
 }
 
 let _tt=null;
 function toast(m){const e=document.getElementById('toast');e.textContent=m;e.classList.add('show');clearTimeout(_tt);_tt=setTimeout(()=>e.classList.remove('show'),2400);}
 
-function renderApp(){renderHdr();renderAvRow();renderFilterBar();renderSelects();renderAttChips();renderSchGrid();renderPplSettings();renderCatSettings();setTab(CT);startRealtimeSync();}
+
+function renderDashboard(){
+  updateHomeCounts();
+  const today=new Date(); today.setHours(0,0,0,0);
+  const fmt=d=>{if(!d)return'';const dt=new Date(d);return dt.toLocaleDateString('en-US',{month:'short',day:'numeric'})};
+  const ppl=G.people||[];
+  const PCOLORS=['#9b59f7','#5eb87a','#4db8d4','#c8882a','#d07aaa','#7c9ef5','#f7c948','#ff6b6b'];
+
+  // ── Tasks ──
+  const tasks=(G.tasks||[]).filter(t=>!t.done).slice(0,6);
+  const tb=document.getElementById('dw-tasks-body');
+  const tc=document.getElementById('dw-tasks-count');
+  if(tc)tc.textContent=(G.tasks||[]).filter(t=>!t.done).length+' pending';
+  if(tb)tb.innerHTML=tasks.length?tasks.map(t=>`
+    <div class="dw-row">
+      <input type="checkbox" class="dw-row-check" onchange="dwToggleTask('${t.id}',this.checked)"/>
+      <span class="dw-row-name">${esc(t.name)}</span>
+      ${t.due?`<span class="dw-row-meta">${fmt(t.due)}</span>`:''}
+    </div>`).join(''):'<div class="dw-empty">No pending tasks 🎉</div>';
+
+  // ── Reminders ──
+  const rems=(G.reminders||[]).filter(r=>!r.done).slice(0,5);
+  const rb=document.getElementById('dw-reminders-body');
+  const rc=document.getElementById('dw-reminders-count');
+  if(rc)rc.textContent=(G.reminders||[]).filter(r=>!r.done).length+' active';
+  if(rb)rb.innerHTML=rems.length?rems.map(r=>`
+    <div class="dw-row">
+      <span class="dw-row-dot" style="background:var(--accent)"></span>
+      <span class="dw-row-name">${esc(r.text||r.name||'')}</span>
+      ${r.due?`<span class="dw-row-meta">${fmt(r.due)}</span>`:''}
+    </div>`).join(''):'<div class="dw-empty">No active reminders</div>';
+
+  // ── Events (upcoming) ──
+  const now=Date.now();
+  const evs=(G.events||[]).filter(e=>{
+    const d=new Date(e.date||e.start||0); return d>=today;
+  }).sort((a,b)=>new Date(a.date||a.start||0)-new Date(b.date||b.start||0)).slice(0,5);
+  const eb=document.getElementById('dw-events-body');
+  const ec=document.getElementById('dw-events-count');
+  if(ec)ec.textContent=evs.length+' upcoming';
+  if(eb)eb.innerHTML=evs.length?evs.map(e=>`
+    <div class="dw-row">
+      <span class="dw-row-dot" style="background:#c8882a"></span>
+      <span class="dw-row-name">${esc(e.title||e.name||'')}</span>
+      <span class="dw-row-meta">${fmt(e.date||e.start)}</span>
+    </div>`).join(''):'<div class="dw-empty">No upcoming events</div>';
+
+  // ── Purchases ──
+  const purs=(G.purchases||[]).filter(p=>!p.bought).slice(0,6);
+  const pb=document.getElementById('dw-purchases-body');
+  const pc=document.getElementById('dw-purchases-count');
+  if(pc)pc.textContent=(G.purchases||[]).filter(p=>!p.bought).length+' to buy';
+  if(pb)pb.innerHTML=purs.length?purs.map(p=>`
+    <div class="dw-row">
+      <input type="checkbox" class="dw-row-check" onchange="dwTogglePurchase('${p.id}',this.checked)"/>
+      <span class="dw-row-name">${esc(p.name)}</span>
+      ${p.price?`<span class="dw-row-meta">$${parseFloat(p.price).toFixed(2)}</span>`:''}
+    </div>`).join(''):'<div class="dw-empty">Nothing to buy 🛒</div>';
+
+  // ── Activities ──
+  const acts=(G.activities||[]).filter(a=>a.status!=='done'&&a.status!=='cancelled').slice(0,5);
+  const ab=document.getElementById('dw-activities-body');
+  const ac2=document.getElementById('dw-activities-count');
+  if(ac2)ac2.textContent=acts.length+' upcoming';
+  const statusColor={planned:'#4db8d4',inprogress:'#c8882a','in-progress':'#c8882a',done:'#5eb87a',cancelled:'#666'};
+  if(ab)ab.innerHTML=acts.length?acts.map(a=>`
+    <div class="dw-row">
+      <span class="dw-row-dot" style="background:${statusColor[a.status]||'#888'}"></span>
+      <span class="dw-row-name">${esc(a.name||a.title||'')}</span>
+      ${a.date?`<span class="dw-row-meta">${fmt(a.date)}</span>`:''}
+    </div>`).join(''):'<div class="dw-empty">No activities planned</div>';
+
+  // ── Projects ──
+  const projs=(G.projects||[]).filter(p=>p.status==='active').slice(0,5);
+  const projb=document.getElementById('dw-projects-body');
+  const projc=document.getElementById('dw-projects-count');
+  if(projc)projc.textContent=projs.length+' active';
+  if(projb)projb.innerHTML=projs.length?projs.map(p=>{
+    const tasks2=(G.tasks||[]).filter(t=>t.project===p.id);
+    const done2=tasks2.filter(t=>t.done).length;
+    const pct=tasks2.length?Math.round(done2/tasks2.length*100):0;
+    return`<div class="dw-row" style="flex-direction:column;align-items:flex-start;gap:4px" onclick="goSection('projects')">
+      <div style="display:flex;gap:8px;align-items:center;width:100%">
+        <span class="dw-row-name">${esc(p.name)}</span>
+        <span class="dw-row-meta">${pct}%</span>
+      </div>
+      <div class="dw-proj-bar" style="width:100%"><div class="dw-proj-fill" style="width:${pct}%"></div></div>
+    </div>`;
+  }).join(''):'<div class="dw-empty">No active projects</div>';
+
+  // ── Trips ──
+  const trips=(G.trips||[]).slice(0,6);
+  const tripb=document.getElementById('dw-trips-body');
+  const tripc=document.getElementById('dw-trips-count');
+  if(tripc)tripc.textContent=trips.length+' planned';
+  if(tripb)tripb.innerHTML=trips.length?trips.map(tr=>`
+    <div class="dw-trip-card" onclick="goSection('trips')">
+      <div class="dw-trip-name">${esc(tr.name||'Trip')}</div>
+      <div class="dw-trip-meta">✈ ${(tr.stops||[]).length} stop${(tr.stops||[]).length!==1?'s':''}</div>
+    </div>`).join(''):'<div class="dw-empty">No trips planned yet ✈</div>';
+
+  // ── People ──
+  const peopleb=document.getElementById('dw-people-body');
+  const peoplec=document.getElementById('dw-people-count');
+  if(peoplec)peoplec.textContent=ppl.length+' members';
+  if(peopleb)peopleb.innerHTML=ppl.length?`<div style="display:flex;gap:8px;flex-wrap:wrap;padding:4px 0">`+ppl.map((p,i)=>`
+    <div class="dw-person" onclick="goSection('people')">
+      <div class="dw-person-av" style="background:${PCOLORS[i%PCOLORS.length]}">${(p||'?')[0].toUpperCase()}</div>
+      <div class="dw-person-name">${esc(p)}</div>
+    </div>`).join('')+`</div>`:'<div class="dw-empty">No members yet</div>';
+
+  // dash sub
+  const s=document.getElementById('dash-sub');
+  if(s){
+    const pt=(G.tasks||[]).filter(t=>!t.done).length;
+    const pe=evs.length;
+    s.textContent=`${pt} pending task${pt!==1?'s':''} · ${pe} upcoming event${pe!==1?'s':''}`;
+  }
+}
+
+function dwToggleTask(id,checked){
+  const t=(G.tasks||[]).find(x=>x.id===id);if(!t)return;
+  t.done=checked;saveG();renderDashboard();
+}
+function dwTogglePurchase(id,checked){
+  const p=(G.purchases||[]).find(x=>x.id===id);if(!p)return;
+  p.bought=checked;saveG();renderDashboard();
+}
+function dwAddTask(){
+  const inp=document.getElementById('dw-task-input');
+  const v=(inp?.value||'').trim();if(!v)return;
+  const t={id:uid(),name:v,done:false,note:'',due:'',time:'',endTime:'',cat:'',assignee:'',priority:'medium',location:'',createdAt:Date.now()};
+  G.tasks.unshift(t);saveG();inp.value='';renderDashboard();toast('Task added');
+}
+function dwAddPurchase(){
+  const inp=document.getElementById('dw-purchase-input');
+  const v=(inp?.value||'').trim();if(!v)return;
+  const p={id:uid(),name:v,qty:1,price:'',store:'',cat:'',assignee:'',due:'',time:'',endTime:'',link:'',bought:false,createdAt:Date.now()};
+  G.purchases.unshift(p);saveG();inp.value='';renderDashboard();toast('Item added');
+}
+
+function renderApp(){renderHdr();renderAvRow();renderFilterBar();renderSelects();renderAttChips();renderSchGrid();renderPplSettings();renderCatSettings();
+  // Start on home grid
+  document.querySelectorAll('.tab-panel').forEach(e=>e.classList.remove('active'));
+  document.getElementById('home-panel').classList.add('active');
+  document.getElementById('section-header').classList.remove('visible');
+  CT='home';
+  renderDashboard();
+  startRealtimeSync();
+}
 
 function renderHdr(){
   const p=G.tasks.filter(t=>!t.done).length;
   document.getElementById('hdr-sub').textContent=`${G.people.length} members · ${p} pending task${p!==1?'s':''}`;
   const gn=document.getElementById('hdr-group-name');
   if(gn) gn.textContent=CUR_GROUP||'Group Planner';
+  updateHomeCounts();
 }
 function renderAvRow(){
   let h=`<button class="av-chip ${FP==='all'?'active':''}" onclick="setFP('all')">All</button>`;
@@ -862,8 +2013,40 @@ function setTab(tab){
   CT=tab;
   document.querySelectorAll('.tab-btn').forEach(b=>b.classList.toggle('active',b.dataset.tab===tab));
   document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
-  document.getElementById('panel-'+tab).classList.add('active');
+  const panel=document.getElementById('panel-'+tab);
+  if(panel)panel.classList.add('active');
   renderFilterBar();renderCurTab();
+}
+function goSection(t){
+  document.getElementById('home-panel').classList.remove('active');
+  document.getElementById('section-header').classList.add('visible');
+  const titles={tasks:'☑ To-Do',purchases:'🛒 Shopping',reminders:'🔔 Reminders',locations:'📍 Locations',events:'📅 Calendar',projects:'📋 Projects',people:'👥 People',gantt:'📊 Gantt',activities:'🎯 Activities',trips:'✈ Trips',settings:'⚙ Settings'};
+  document.getElementById('section-title').textContent=titles[t]||t;
+  setTab(t);
+}
+function goHome(){
+  document.querySelectorAll('.tab-panel').forEach(e=>e.classList.remove('active'));
+  document.getElementById('home-panel').classList.add('active');
+  document.getElementById('section-header').classList.remove('visible');
+  CT='home';
+  renderDashboard();
+}
+function updateHomeCounts(){
+  const t=G.tasks||[],p=G.purchases||[],r=G.reminders||[],ev=G.events||[],pr=G.projects||[],ac=G.activities||[],tr=G.trips||[],lo=G.locations||[];
+  const set=(id,v)=>{const el=document.getElementById(id);if(el)el.textContent=v;};
+  set('hg-tasks',t.filter(x=>!x.done).length+' pending');
+  set('hg-purchases',p.filter(x=>!x.bought).length+' to buy');
+  set('hg-reminders',r.filter(x=>!x.done).length+' active');
+  set('hg-events',ev.length+' events');
+  set('hg-activities',ac.filter(x=>x.status!=='done'&&x.status!=='cancelled').length+' upcoming');
+  set('hg-projects',pr.filter(x=>x.status==='active').length+' active');
+  set('hg-gantt','Timeline view');
+  set('hg-trips',tr.length+' planned');
+  set('hg-locations',lo.length+' places');
+  set('hg-people',(G.people||[]).length+' members');
+  const h=new Date().getHours(),g=h<12?'Good morning':h<17?'Good afternoon':'Good evening';
+  const gr=document.getElementById('home-greeting');
+  if(gr)gr.textContent=g+', '+(CUR_GROUP||'Group')+' ✦';
 }
 function renderCurTab(){
   const m={tasks:renderTasks,purchases:renderPurchases,reminders:renderReminders,locations:renderLocations,events:renderCalendar,projects:renderProjects,people:renderPeople,gantt:renderGantt,trips:renderTrips,activities:renderActivities,settings:renderSettings};
@@ -910,7 +2093,7 @@ function editTask(id){
 function renderTasks(){
   const list=G.tasks.filter(t=>{if(FP!=='all'&&String(t.assignee)!==String(FP))return false;if(FC!=='all'&&t.cat!==FC)return false;return true;}).sort((a,b)=>{if(a.done!==b.done)return a.done?1:-1;return new Date(a.due)-new Date(b.due);});
   const el=document.getElementById('tasks-list');
-  if(!list.length){el.innerHTML='<div class="empty-s">No tasks yet — add one above</div>';return;}
+  if(!list.length){el.innerHTML='<div class="empty-s">✨ No tasks yet~ add something! — add one above</div>';return;}
   el.innerHTML=list.map(t=>{
     const d=du(t.due),pr={high:'#ff4b4b',medium:'var(--accent)',low:'var(--text3)'}[t.priority||'medium'];
     const per=t.assignee!==''&&t.assignee!=null?G.people[parseInt(t.assignee)]:null,pc=per?PC[parseInt(t.assignee)%10]:null;
@@ -1701,7 +2884,7 @@ function renderDayEvts(byDay){
   const items=byDay[SelDay]||[];
   const ds=new Date(CY,CM,SelDay).toLocaleDateString('en-US',{month:'long',day:'numeric'});
   let h=`<div style="display:flex;align-items:center;gap:10px;margin-bottom:10px"><span style="font-size:14px;font-weight:500;color:var(--text)">Scheduled on ${ds}</span><button class="day-view-today-btn" onclick="CurDay=${SelDay};setCalView('day')">Full day view →</button></div>`;
-  if(!items.length)h+='<div class="empty-s">Nothing scheduled this day</div>';
+  if(!items.length)h+='<div class="empty-s">🌸 Nothing scheduled this day</div>';
   else items.forEach(x=>{
     const timeChip=x.time?`<span class="mt" style="font-weight:500;color:var(--accent)">🕐 ${fmtTime(x.time)}</span>`:'';
     if(x._type==='reminder'){
@@ -1985,7 +3168,13 @@ function renderProjects(){
 
 /* ── SETTINGS ── */
 function renderSchGrid(){
-  document.getElementById('sch-grid').innerHTML=Object.entries(SCHEMES).map(([k,s])=>`<button class="sch-btn" onclick="setScheme('${k}')" style="border-color:${G.schemeKey===k?s.accent:'var(--border)'};background:${G.schemeKey===k?s.aL:'transparent'};color:${G.schemeKey===k?s.accent:'var(--text3)'}"><span class="sdot" style="background:${s.accent}"></span>${s.name}</button>`).join('');
+  document.getElementById('sch-grid').innerHTML=Object.entries(SCHEMES).map(([k,s])=>{
+  const active=G.schemeKey===k;
+  return`<button class="sch-btn" onclick="setScheme('${k}')" style="border-color:${active?s.accent:'var(--border)'};background:${active?s.aL:'var(--card)'};color:${active?s.accent:'var(--text2)'};transform:${active?'scale(1.04)':'scale(1)'};box-shadow:${active?'0 4px 16px '+s.aL:'none'}">
+    <span class="sdot" style="background:linear-gradient(135deg,${s.accent},${s.t2||s.accent})"></span>
+    <span style="font-weight:${active?'800':'600'}">${s.name}</span>
+    ${active?'<span style="font-size:10px;margin-left:auto">✓</span>':''}
+  </button>`;}).join('');
 }
 function setScheme(k){G.schemeKey=k;save();applyScheme();renderSchGrid();}
 function renderPplSettings(){
@@ -2981,10 +4170,28 @@ function startRealtimeSync(){
     if(localStr===remoteStr)return;
     const defaults={schemeKey:'midnight',people:['Alice','Bob','Carol'],tasks:[],purchases:[],reminders:[],locations:[],projects:[],events:[],trips:[],activities:[],categories:['Work','Personal','Travel','Health','Finance']};
     G=Object.assign(defaults,remote);
-    applyScheme();renderCurTab();renderHdr();renderAvRow();
+    applyScheme();renderCurTab();renderHdr();renderAvRow();updateHomeCounts();
     toast('✦ Synced from another device');
   });
 }
+
+function spawnFloaty(x, y){
+  const emojis = ['✨','💜','🌸','⭐','💫','🎀','💕','🌟','🍬','🦋'];
+  const el = document.createElement('span');
+  el.className = 'floaty';
+  el.textContent = emojis[Math.floor(Math.random()*emojis.length)];
+  el.style.left = (x - 10) + 'px';
+  el.style.top  = (y - 10) + 'px';
+  document.body.appendChild(el);
+  setTimeout(()=>el.remove(), 3000);
+}
+document.addEventListener('change', e=>{
+  if(e.target.type==='checkbox' && e.target.checked){
+    const r = e.target.getBoundingClientRect();
+    spawnFloaty(r.left + r.width/2, r.top);
+  }
+});
+
 </script>
 </body>
 </html>
